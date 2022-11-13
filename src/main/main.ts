@@ -25,12 +25,6 @@ class AppUpdater {
 
 let mainWindow: BrowserWindow | null = null;
 
-ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
-});
-
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
   sourceMapSupport.install();
@@ -75,6 +69,8 @@ const createWindow = async () => {
     height: 720,
     icon: getAssetPath('icon.png'),
     maximizable: true,
+    autoHideMenuBar: true,
+    frame: false,
     webPreferences: {
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
@@ -101,12 +97,33 @@ const createWindow = async () => {
   });
 
   const menuBuilder = new MenuBuilder(mainWindow);
-  menuBuilder.buildMenu();
+  const menu = menuBuilder.buildMenu();
 
   // Open urls in the user's browser
   mainWindow.webContents.setWindowOpenHandler((edata) => {
     shell.openExternal(edata.url);
     return { action: 'deny' };
+  });
+
+  ipcMain.on('windowControl', async (event, arg) => {
+    switch (arg[0]) {
+      case "mini":
+        mainWindow?.minimize();
+        break;
+      case "size":
+        if(mainWindow?.isMaximized()){
+          mainWindow?.restore();
+        } else {
+          mainWindow?.maximize();
+        }
+        break;
+      case "exit":
+        mainWindow?.close();
+        break;
+      case "menu":
+        menu.popup();
+        break;
+    }
   });
 
   // Remove this if your app does not use auto updates

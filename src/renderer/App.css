@@ -1,62 +1,145 @@
-/*
- * @NOTE: Prepend a `~` to css file paths that are in your node_modules
- *        See https://github.com/webpack-contrib/sass-loader#imports
- */
+@import url(https://cdn.jsdelivr.net/gh/theeluwin/NotoSansKR-Hestia@master/stylesheets/NotoSansKR-Hestia.css);
+
+* {
+  font-family: 'Noto Sans Korean', sans-serif;
+  font-weight: 400;
+}
+
 body {
-  position: relative;
-  color: white;
-  height: 100vh;
-  background: linear-gradient(
-    200.96deg,
-    #fedc2a -29.09%,
-    #dd5789 51.77%,
-    #7a2c9e 129.35%
-  );
-  font-family: sans-serif;
-  overflow-y: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background-color: #2C2C2C;
 }
 
-button {
-  background-color: white;
-  padding: 10px 20px;
-  border-radius: 10px;
-  border: none;
-  appearance: none;
-  font-size: 1.3rem;
-  box-shadow: 0px 8px 28px -6px rgba(24, 39, 75, 0.12),
-    0px 18px 88px -4px rgba(24, 39, 75, 0.14);
-  transition: all ease-in 0.1s;
+.headerContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 38px;
+  background: #1E1E1E;
+
+  display: flex;
+  vertical-align: middle;
+  align-items: center;
+
+  -webkit-app-region: drag;
+}
+
+.headerContainer .title {
+  font-weight: 900;
+  font-size: 20px;
+  color: #FFFFFF;
+  line-height: 38px;
+  margin-left: 8px;
+  float: left;
+}
+
+.headerContainer .createButton {
+  width: 57px;
+  height: 23px;
+
+  background: #4255FF;
+  border-radius: 5px;
+
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 23px;
+  text-align: center;
+  color: #FFFFFF;
+  float: left;
+  margin-left: 8px;
+
   cursor: pointer;
-  opacity: 0.9;
 }
 
-button:hover {
-  transform: scale(1.05);
-  opacity: 1;
+.headerContainer .createButton:hover {
+  background: #364aff;
 }
 
-li {
-  list-style: none;
-}
-
-a {
-  text-decoration: none;
-  height: fit-content;
-  width: fit-content;
-  margin: 10px;
-}
-
-a:hover {
-  opacity: 1;
-  text-decoration: none;
-}
-
-.Hello {
+.headerContainer .exitButton {
+  position: fixed;
+  right: 0;
   display: flex;
-  justify-content: center;
+  vertical-align: middle;
   align-items: center;
-  margin: 20px 0;
+  justify-content: center;
+
+  width: 59px;
+  height: 38px;
+
+  background: #1E1E1E;
+
+  cursor: pointer;
+}
+
+.headerContainer .exitButton:hover {
+  background: #EE1515;
+}
+
+.headerContainer .sizeButton {
+  position: fixed;
+  right: 59px;
+  display: flex;
+  vertical-align: middle;
+  align-items: center;
+  justify-content: center;
+
+  width: 59px;
+  height: 38px;
+
+  background: #1E1E1E;
+
+  cursor: pointer;
+}
+
+.headerContainer .sizeButton:hover {
+  background: #252525;
+}
+
+.headerContainer .miniButton {
+  position: fixed;
+  right: 118px;
+  display: flex;
+  vertical-align: middle;
+  align-items: center;
+  justify-content: center;
+
+  width: 59px;
+  height: 38px;
+
+  background: #1E1E1E;
+
+  cursor: pointer;
+}
+
+.headerContainer .miniButton:hover {
+  background: #252525;
+}
+
+.headerContainer .menuButton {
+  position: fixed;
+  right: 177px;
+  display: flex;
+  vertical-align: middle;
+  align-items: center;
+  justify-content: center;
+
+  width: 50px;
+  height: 38px;
+
+  background: #1E1E1E;
+
+  cursor: pointer;
+}
+
+.headerContainer .menuButton:hover {
+  background: #252525;
+}
+
+.undrag {
+  -ms-user-select: none;
+  -moz-user-select: -moz-none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-app-region: none;
 }
