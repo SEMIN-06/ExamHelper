@@ -1,0 +1,22 @@
+.questionAnimation-enter {
+  opacity: 0;
+}
+
+.questionAnimation-enter-active {
+  opacity: 1;
+  transition: opacity 200ms ease-in;
+}
+
+.questionAnimation-exit {
+  opacity: 1;
+  margin-top: 0px;
+  height: fit-content;
+}
+
+.questionAnimation-exit-active {
+  opacity: 0;
+  margin-top: -10px;
+  height: 0px !important;
+  min-height: 0px !important;
+  transition: height, margin-top, opacity, 200ms ease-in;
+}
