@@ -1,4 +1,9 @@
 module.exports = {
+  env: {
+    "node": true,
+    "commonjs": true,
+    "es2021": true
+  },
   extends: 'erb',
   rules: {
     // A temporary hack related to IDE not resolving correct package.json

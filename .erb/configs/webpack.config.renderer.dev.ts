@@ -10,6 +10,11 @@ import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 import baseConfig from './webpack.config.base';
 import webpackPaths from './webpack.paths';
 import checkNodeEnv from '../scripts/check-node-env';
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const NODE_ENV = "development";
 
 // When an ESLint server is running, we can't set the NODE_ENV so we'll check if it's
 // at the dev webpack config is not accidentally run in a production environment
@@ -139,9 +144,16 @@ const configuration: webpack.Configuration = {
      * By default, use 'development' as NODE_ENV. This can be overriden with
      * 'staging', for example, by changing the ENV variables in the npm scripts
      */
-    new webpack.EnvironmentPlugin({
-      NODE_ENV: 'development',
-    }),
+    new webpack.EnvironmentPlugin([
+      "NODE_ENV",
+      "FIREBASE_API_KEY",
+      "FIREBASE_AUTH_DOMAIN",
+      "FIREBASE_PROJECT_ID",
+      "FIREBASE_STORAGE_BUCKET",
+      "FIREBASE_MESSAGING_SENDER_ID",
+      "FIREBASE_APP_ID",
+      "FIREBASE_MEASUREMENT_ID",
+    ]),
 
     new webpack.LoaderOptionsPlugin({
       debug: true,

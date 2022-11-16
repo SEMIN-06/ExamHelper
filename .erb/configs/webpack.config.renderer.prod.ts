@@ -14,6 +14,9 @@ import baseConfig from './webpack.config.base';
 import webpackPaths from './webpack.paths';
 import checkNodeEnv from '../scripts/check-node-env';
 import deleteSourceMaps from '../scripts/delete-source-maps';
+import dotenv from "dotenv";
+
+dotenv.config();
 
 checkNodeEnv('production');
 deleteSourceMaps();
@@ -111,10 +114,17 @@ const configuration: webpack.Configuration = {
      * NODE_ENV should be production so that modules do not perform certain
      * development checks
      */
-    new webpack.EnvironmentPlugin({
-      NODE_ENV: 'production',
-      DEBUG_PROD: false,
-    }),
+    new webpack.EnvironmentPlugin([
+      "NODE_ENV",
+      "DEBUG_PROD",
+      "FIREBASE_API_KEY",
+      "FIREBASE_AUTH_DOMAIN",
+      "FIREBASE_PROJECT_ID",
+      "FIREBASE_STORAGE_BUCKET",
+      "FIREBASE_MESSAGING_SENDER_ID",
+      "FIREBASE_APP_ID",
+      "FIREBASE_MEASUREMENT_ID",
+    ]),
 
     new MiniCssExtractPlugin({
       filename: 'style.css',
