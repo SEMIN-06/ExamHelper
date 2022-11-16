@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import styled from "styled-components";
-import { fireStore } from "../firebase";
+
 import GlobalStyle from "./styles/global";
 
 import Header from "./components/Header";
@@ -16,17 +16,12 @@ const RoutesWrapper = styled.div`
 `;
 
 export default function App() {
-  const scrollRef = useRef(null);
+  const scrollRef = useRef<HTMLDivElement>();
   const [scrollTop, setScrollTop] = useState(0);
 
   const onScroll = () => {
     setScrollTop(scrollRef.current.scrollTop);
   };
-
-  useEffect(() => {
-    console.log(fireStore);
-    console.log(fireStore.app.name);
-  }, []);
 
   return (
     <Router>
