@@ -1,39 +1,41 @@
 import { Link } from 'react-router-dom';
-import { collection, setDoc, doc } from 'firebase/firestore';
+import { collection, query, orderBy } from 'firebase/firestore';
 import { fireStore } from '../components/Firebase';
-import { useCollection } from 'react-firebase-hooks/firestore';
+import { useCollectionOnce } from 'react-firebase-hooks/firestore';
+import { ThreeDots } from  'react-loader-spinner'
 
 const Home = () => {
-  const [value, loading, error] = useCollection(
-    collection(fireStore, "test"),
-    {
-      snapshotListenOptions: { includeMetadataChanges: true },
-    }
-  );
-
-  const addButton = async () => {
-    await setDoc(doc(fireStore, "test", "4"), {
-      content: Math.random()
-    });
-  };
+  const q = query(collection(fireStore, "projects"), orderBy("editAt"));
+  const [value, loading, error] = useCollectionOnce(q);
 
   return (
     <div>
-      <p>
         {error && <strong>Error: {JSON.stringify(error)}</strong>}
-        {loading && <span>Collection: Loading...</span>}
+        <ThreeDots
+          height="60"
+          width="60"
+          radius="9"
+          color="#ffffff"
+          ariaLabel="Loading DB..."
+          wrapperStyle={{
+            position: "absolute",
+            transform: "translate(-50%, -50%)",
+            left: "50%",
+            top: "50%"
+          }}
+          visible={loading}
+        />
         {value && (
-          <span>
-            Collection:{' '}
+          <div>
             {value.docs.map((doc) => (
-              <h1 key={doc.id}>
-                {JSON.stringify(doc.data())},{' '}
-              </h1>
+              <Link to={`/project/${doc.id}`} key={doc.id}>
+                <button>
+                  {doc.data().title}
+                </button>
+              </Link>
             ))}
-          </span>
+          </div>
         )}
-      </p>
-      <button onClick={addButton}>테스트 버튼</button>
     </div>
   );
 };

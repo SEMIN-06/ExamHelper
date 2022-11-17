@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import styled from "styled-components";
+import { ToastContainer, Slide } from 'react-toastify';
 
 import GlobalStyle from "./styles/global";
 
 import Header from "./components/Header";
 import Home from "./pages/Home";
 import Create from "./pages/Create";
-import { ToastContainer, Slide } from 'react-toastify';
+import Project from './pages/Project';
 
 const RoutesWrapper = styled.div`
   margin-top: 38px;
@@ -30,7 +31,9 @@ export default function App() {
       <RoutesWrapper ref={scrollRef} onScroll={onScroll}>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/create" element={<Create stickyAble={scrollTop >= 50} />} />
+          <Route path="/project/:projectId" element={<Project />} />
+          <Route path="/project/:projectId/edit" element={<Create key="project/edit" stickyAble={scrollTop >= 50} />} />
+          <Route path="/create" element={<Create key="create" stickyAble={scrollTop >= 50} />} />
         </Routes>
       </RoutesWrapper>
       <ToastContainer

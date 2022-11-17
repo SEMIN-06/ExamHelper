@@ -1,11 +1,18 @@
 import { createRef, useEffect, useRef, useState } from "react";
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
+import { toast } from 'react-toastify';
+import { setDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { fireStore } from '../components/Firebase';
+import { useDocumentOnce } from 'react-firebase-hooks/firestore';
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { ThreeDots } from  'react-loader-spinner'
 import styled from "styled-components";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
-import "../styles/createAnimation.css";
 import trashIcon from "../../../assets/svgs/trash.svg";
+
+import 'react-toastify/dist/ReactToastify.css';
+import "../styles/createAnimation.css";
+import usePrompt from "renderer/hooks/useBlockerPrompt";
 
 interface CreateProps {
   stickyAble: boolean;
@@ -41,6 +48,19 @@ const NavTitle = styled.div`
   font-weight: 900;
   font-size: 30px;
   color: #FFFFFF;
+`
+
+const NavBackLink = styled(Link)`
+  font-weight: 600;
+  font-size: 14px;
+  color: #FFFFFF;
+  text-decoration: none;
+
+  &:hover {
+    color: #6170F1;
+  };
+
+  transition: color 0.1s ease;
 `
 
 const SaveButton = styled.div`
@@ -180,6 +200,8 @@ const QuestionInput = styled.div`
   outline: none;
 
   color: #1E1E1E;
+
+  white-space: pre-wrap;
 `;
 
 const QuestionInputBorder = styled.div`
@@ -253,6 +275,15 @@ const NewQuestionText = styled.div`
 `;
 
 const Create = ({ stickyAble }: CreateProps) => {
+  const params = useParams();
+  const navigate = useNavigate();
+  const projectId = useRef<string>(params.projectId ? params.projectId : (Math.random() + 1).toString(36).substring(7));
+  const [loaded, setLoaded] = useState<boolean>(false);
+  const [created, setCreated] = useState<boolean>(false);
+  const [naviBlocked, setNaviBlocked] = useState<boolean>(false);
+
+  usePrompt("저장 되지 않은 항목이 있습니다. 나가시겠습니까?", naviBlocked);
+
   const [questions, setQuestions] = useState([{
     id: Math.random(),
     nodeRef: createRef(),
@@ -292,7 +323,8 @@ const Create = ({ stickyAble }: CreateProps) => {
 
   const [isNavSticky, setIsNavSticky] = useState(false);
 
-  const lastQuestionRef = useRef<HTMLElement>();
+  const SubjectInputRef = useRef<HTMLInputElement>();
+  const lastQuestionRef = useRef<HTMLDivElement>();
 
   const addQuestion = () => {
     const newQuestion = {
@@ -320,12 +352,16 @@ const Create = ({ stickyAble }: CreateProps) => {
     const _questions = [...questions];
     _questions[index]._subjectInput = e.target.innerText;
     setQuestions(_questions);
+
+    setNaviBlocked(true);
   };
 
   const editTempQuestionContentData = (index: number) => (e: any) => {
     const _questions = [...questions];
     _questions[index]._contentInput = e.target.innerText;
     setQuestions(_questions);
+
+    setNaviBlocked(true);
   };
 
   const updateQuestionSubjectData = (index: number) => {
@@ -340,71 +376,183 @@ const Create = ({ stickyAble }: CreateProps) => {
     setQuestions(_questions);
   };
 
-  const saveData = () => {
-    toast('저장되었어요.', {
-      position: "bottom-left",
-      autoClose: 2000,
-      hideProgressBar: true,
-      closeOnClick: true,
-      pauseOnHover: false,
-      draggable: true,
-      progress: undefined,
-      theme: "dark",
-    });
+  const saveData = async () => {
+    const docRef = doc(fireStore, "projects", projectId.current);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const _questionsfordb = {} as any;
+      questions.map((value: any, i: number) => {
+        _questionsfordb[i] = {
+          subject: value.subject,
+          content: value.content
+        }
+      });
+
+      const toastId = toast.loading("저장 중...", {
+        position: "bottom-left",
+        autoClose: 2000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "dark"
+      });
+
+      await updateDoc(docRef, {
+        title: SubjectInputRef.current?.value,
+        editAt: Date.now(),
+        questions: _questionsfordb
+      }).finally(() => {
+        setNaviBlocked(false);
+        toast.update(toastId, {
+          render: "저장을 완료했어요.",
+          isLoading: false,
+          autoClose: 2000,
+        });
+      });
+    } else {
+      const _questionsfordb = {} as any;
+      questions.map((value: any, i: number) => {
+        _questionsfordb[i] = {
+          subject: value.subject,
+          content: value.content
+        }
+      });
+
+      const toastId = toast.loading("저장 중...", {
+        position: "bottom-left",
+        autoClose: 2000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "dark"
+      });
+
+      await setDoc(docRef, {
+        title: SubjectInputRef.current?.value,
+        createdAt: Date.now(),
+        editAt: Date.now(),
+        questions: _questionsfordb
+      }).finally(() => {
+        setNaviBlocked(false);
+        navigate(`/project/${projectId.current}`);
+        toast.update(toastId, {
+          render: "프로젝트가 생성되었어요.",
+          isLoading: false,
+          autoClose: 2000,
+        });
+      });
+    }
   };
+
+  const [projectDbValue, projectDbLoading, projectDbError] = useDocumentOnce(doc(fireStore, "projects", projectId.current));
+  useEffect(() => {
+    if (!projectDbLoading) {
+      if (projectDbValue) {
+        if (projectDbValue.data()?.questions) {
+          const _questions = Object.values(projectDbValue.data()?.questions);
+          if (_questions.length > 0) {
+            const _questionsfordb = {} as any;
+            _questions.map((value: any, i: number) => {
+              _questionsfordb[i] = {
+                id: Math.random(),
+                nodeRef: createRef(),
+
+                subject: value.subject,
+                content: value.content,
+                _subjectInput: value.subject,
+                _contentInput: value.content
+              };
+            });
+            setQuestions(Object.values(_questionsfordb));
+            setCreated(true);
+            setLoaded(true);
+          }
+        }
+      }
+      setLoaded(true);
+    }
+  }, [projectDbLoading]);
 
   useEffect(() => {
     setIsNavSticky(stickyAble);
   }, [stickyAble]);
 
+  const NavBarContent = () => {
+    return (
+      <>
+        {created
+          ? <NavBackLink to={`/project/${projectId.current}`}>{"< 프로젝트로 돌아가기"}</NavBackLink>
+          : <NavTitle>프로젝트 만들기</NavTitle>
+        }
+        <SaveButton onClick={saveData}>{created ? "저장" : "만들기"}</SaveButton>
+      </>
+    )
+  };
+
   return (
     <CreateWrapper>
       <StickyNavBarBox sticky={isNavSticky} />
-      <StickyNavBar sticky={isNavSticky}>
-        <NavTitle>힌트지 만들기</NavTitle>
-        <SaveButton onClick={saveData}>저장</SaveButton>
-      </StickyNavBar>
-      <Container>
-        <NavBar sticky={isNavSticky}>
-          <NavTitle>힌트지 만들기</NavTitle>
-          <SaveButton onClick={saveData}>저장</SaveButton>
-        </NavBar>
-        <Input placeholder="제목을 입력하세요." type="text"/>
+      <StickyNavBar sticky={isNavSticky}><NavBarContent/></StickyNavBar>
 
-        <TransitionGroup>
-          {questions.map((value: any, i: number) => (
-            <CSSTransition key={value.id} nodeRef={value.nodeRef} timeout={200} classNames="questionAnimation">
-              <QuestionWrapper ref={value.nodeRef}>
-                <QuestionToolBar>
-                  <QuestionNumber>{i + 1}</QuestionNumber>
-                  {(questions.length > 1) ? <TrashButton src={trashIcon} onClick={() => deleteQuestion(value.id)}/> : <TrashButton src={trashIcon} style={{cursor: "not-allowed"}}/>}
-                </QuestionToolBar>
-                <QuestionContent>
-                  <QuestionInputWrapper width="15%">
-                    <QuestionInput ref={lastQuestionRef} contentEditable="true" aria-multiline="false" spellCheck="false" suppressContentEditableWarning={true} tabIndex={1} onInput={editTempQuestionSubjectData(i)} onBlur={() => updateQuestionSubjectData(i)}>{value.subject}</QuestionInput>
-                    <QuestionInputBorder/>
-                    <QuestionInputLabel>제목</QuestionInputLabel>
-                  </QuestionInputWrapper>
-                  <QuestionInputWrapper width="85%">
-                    <QuestionInput role="textbox" contentEditable="true" aria-multiline="true" spellCheck="false" suppressContentEditableWarning={true} tabIndex={1} onInput={editTempQuestionContentData(i)} onBlur={() => updateQuestionContentData(i)}>{value.content}</QuestionInput>
-                    <QuestionInputBorder/>
-                    <QuestionInputLabel>내용</QuestionInputLabel>
-                  </QuestionInputWrapper>
-                </QuestionContent>
-              </QuestionWrapper>
-            </CSSTransition>
-          ))}
-        </TransitionGroup>
+      <ThreeDots
+        height="60"
+        width="60"
+        radius="9"
+        color="#ffffff"
+        ariaLabel="Loading DB..."
+        wrapperStyle={{
+          position: "absolute",
+          transform: "translate(-50%, -50%)",
+          left: "50%",
+          top: "50%"
+        }}
+        visible={projectDbLoading || !loaded}
+      />
 
-        <NewQuestionWrapper onClick={addQuestion} onFocus={addQuestion} tabIndex={1}>
-          <NewQuestionNumber>{(questions.length) + 1}</NewQuestionNumber>
-          <NewQuestionTextInner>
-            <NewQuestionText>카드 추가</NewQuestionText>
-          </NewQuestionTextInner>
-        </NewQuestionWrapper>
+      {(!projectDbLoading && loaded) &&
+        <Container>
+          <NavBar sticky={isNavSticky}><NavBarContent/></NavBar>
+          <Input placeholder="제목을 입력하세요." type="text" ref={SubjectInputRef} defaultValue={projectDbValue?.data()?.title} onInput={() => setNaviBlocked(true)}/>
 
-        <SaveButton onClick={saveData} style={{height: "40px", lineHeight: "40px", marginBottom: "30px"}}>저장</SaveButton>
-      </Container>
+          <TransitionGroup>
+            {questions.map((value: any, i: number) => (
+              <CSSTransition key={value.id} nodeRef={value.nodeRef} timeout={200} classNames="questionAnimation">
+                <QuestionWrapper ref={value.nodeRef}>
+                  <QuestionToolBar>
+                    <QuestionNumber>{i + 1}</QuestionNumber>
+                    {(questions.length > 1) ? <TrashButton src={trashIcon} onClick={() => deleteQuestion(value.id)}/> : <TrashButton src={trashIcon} style={{cursor: "not-allowed"}}/>}
+                  </QuestionToolBar>
+                  <QuestionContent>
+                    <QuestionInputWrapper width="15%">
+                      <QuestionInput ref={lastQuestionRef} contentEditable="true" aria-multiline="false" spellCheck="false" suppressContentEditableWarning={true} tabIndex={1} onInput={editTempQuestionSubjectData(i)} onBlur={() => updateQuestionSubjectData(i)}>{value.subject}</QuestionInput>
+                      <QuestionInputBorder/>
+                      <QuestionInputLabel>제목</QuestionInputLabel>
+                    </QuestionInputWrapper>
+                    <QuestionInputWrapper width="85%">
+                      <QuestionInput role="textbox" contentEditable="true" aria-multiline="true" spellCheck="false" suppressContentEditableWarning={true} tabIndex={1} onInput={editTempQuestionContentData(i)} onBlur={() => updateQuestionContentData(i)}>{value.content}</QuestionInput>
+                      <QuestionInputBorder/>
+                      <QuestionInputLabel>내용</QuestionInputLabel>
+                    </QuestionInputWrapper>
+                  </QuestionContent>
+                </QuestionWrapper>
+              </CSSTransition>
+            ))}
+          </TransitionGroup>
+
+          <NewQuestionWrapper onClick={addQuestion} onFocus={addQuestion} tabIndex={1}>
+            <NewQuestionNumber>{(questions.length) + 1}</NewQuestionNumber>
+            <NewQuestionTextInner>
+              <NewQuestionText>카드 추가</NewQuestionText>
+            </NewQuestionTextInner>
+          </NewQuestionWrapper>
+
+          <SaveButton onClick={saveData} style={{height: "40px", lineHeight: "40px", marginBottom: "30px"}}>{created ? "저장" : "만들기"}</SaveButton>
+        </Container>
+      }
     </CreateWrapper>
   );
 };
