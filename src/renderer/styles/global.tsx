@@ -34,4 +34,5 @@ export default createGlobalStyle`
     background-color: #2C2C2C;
     overflow: hidden;
   }
+
 `;

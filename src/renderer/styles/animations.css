@@ -20,3 +20,22 @@
   min-height: 0px !important;
   transition: height, margin-top, opacity, 200ms ease-in;
 }
+
+.promptModalAnimation-enter {
+  top: 55% !important;
+  transform: translate(-50%, -55%) !important;
+}
+
+.promptModalAnimation-enter-active {
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  transition: all 300ms ease;
+}
+
+.promptModalAnimation-exit {
+  opacity: 0;
+}
+
+.promptModalAnimation-exit-active {
+  opacity: 0;
+}

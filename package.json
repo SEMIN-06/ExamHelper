@@ -110,6 +110,7 @@
     "react-router-dom": "^6.3.0",
     "react-toastify": "^9.1.1",
     "react-transition-group": "^4.4.5",
+    "recoil": "^0.7.6",
     "styled-components": "^5.3.6"
   },
   "devDependencies": {

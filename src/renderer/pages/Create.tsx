@@ -2,17 +2,16 @@ import { createRef, useEffect, useRef, useState } from "react";
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { toast } from 'react-toastify';
 import { setDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
-import { fireStore } from '../components/Firebase';
+import { fireStore } from '../Firebase';
 import { useDocumentOnce } from 'react-firebase-hooks/firestore';
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { ThreeDots } from  'react-loader-spinner'
+import { Link, useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
+import usePrompt from "renderer/hooks/useBlockerPrompt";
+import LoadingSpinner from "renderer/components/LoadingSpinner";
 
 import trashIcon from "../../../assets/svgs/trash.svg";
-
+import "../styles/animations.css";
 import 'react-toastify/dist/ReactToastify.css';
-import "../styles/createAnimation.css";
-import usePrompt from "renderer/hooks/useBlockerPrompt";
 
 interface CreateProps {
   stickyAble: boolean;
@@ -282,7 +281,7 @@ const Create = ({ stickyAble }: CreateProps) => {
   const [created, setCreated] = useState<boolean>(false);
   const [naviBlocked, setNaviBlocked] = useState<boolean>(false);
 
-  usePrompt("저장 되지 않은 항목이 있습니다. 나가시겠습니까?", naviBlocked);
+  usePrompt("저장 되지 않은 항목이 있어요. 정말 나갈까요?", naviBlocked);
 
   const [questions, setQuestions] = useState([{
     id: Math.random(),
@@ -377,6 +376,49 @@ const Create = ({ stickyAble }: CreateProps) => {
   };
 
   const saveData = async () => {
+    if (SubjectInputRef.current?.value == "") {
+      toast("제목이 입력되지 않았어요.", {
+        position: "bottom-left",
+        autoClose: 2000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "dark"
+      });
+      return;
+    }
+
+    for (let i = 0; i < questions.length; i++) {
+      const _value = questions[i];
+      if (_value.subject == "") {
+        toast("제목이 입력되지 않은 문제가 있어요.", {
+          position: "bottom-left",
+          autoClose: 2000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "dark"
+        });
+        return
+      } else if (_value.content == "") {
+        toast("내용이 입력되지 않은 문제가 있어요.", {
+          position: "bottom-left",
+          autoClose: 2000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "dark"
+        });
+        return
+      }
+    }
+
     const docRef = doc(fireStore, "projects", projectId.current);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
@@ -399,12 +441,12 @@ const Create = ({ stickyAble }: CreateProps) => {
         theme: "dark"
       });
 
+      setNaviBlocked(false);
       await updateDoc(docRef, {
         title: SubjectInputRef.current?.value,
         editAt: Date.now(),
         questions: _questionsfordb
       }).finally(() => {
-        setNaviBlocked(false);
         toast.update(toastId, {
           render: "저장을 완료했어요.",
           isLoading: false,
@@ -431,13 +473,13 @@ const Create = ({ stickyAble }: CreateProps) => {
         theme: "dark"
       });
 
+      setNaviBlocked(false);
       await setDoc(docRef, {
         title: SubjectInputRef.current?.value,
         createdAt: Date.now(),
         editAt: Date.now(),
         questions: _questionsfordb
       }).finally(() => {
-        setNaviBlocked(false);
         navigate(`/project/${projectId.current}`);
         toast.update(toastId, {
           render: "프로젝트가 생성되었어요.",
@@ -495,28 +537,15 @@ const Create = ({ stickyAble }: CreateProps) => {
 
   return (
     <CreateWrapper>
+      <LoadingSpinner visible={projectDbLoading && !loaded}/>
+
       <StickyNavBarBox sticky={isNavSticky} />
       <StickyNavBar sticky={isNavSticky}><NavBarContent/></StickyNavBar>
-
-      <ThreeDots
-        height="60"
-        width="60"
-        radius="9"
-        color="#ffffff"
-        ariaLabel="Loading DB..."
-        wrapperStyle={{
-          position: "absolute",
-          transform: "translate(-50%, -50%)",
-          left: "50%",
-          top: "50%"
-        }}
-        visible={projectDbLoading || !loaded}
-      />
 
       {(!projectDbLoading && loaded) &&
         <Container>
           <NavBar sticky={isNavSticky}><NavBarContent/></NavBar>
-          <Input placeholder="제목을 입력하세요." type="text" ref={SubjectInputRef} defaultValue={projectDbValue?.data()?.title} onInput={() => setNaviBlocked(true)}/>
+          <Input placeholder="제목을 입력하세요." type="text" spellCheck="false" ref={SubjectInputRef} defaultValue={projectDbValue?.data()?.title} onInput={() => setNaviBlocked(true)}/>
 
           <TransitionGroup>
             {questions.map((value: any, i: number) => (

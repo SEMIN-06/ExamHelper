@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
 import { collection, query, orderBy } from 'firebase/firestore';
-import { fireStore } from '../components/Firebase';
+import { fireStore } from '../Firebase';
 import { useCollectionOnce } from 'react-firebase-hooks/firestore';
-import { ThreeDots } from  'react-loader-spinner'
+import LoadingSpinner from 'renderer/components/LoadingSpinner';
 
+// UI 꾸미기
 const Home = () => {
   const q = query(collection(fireStore, "projects"), orderBy("editAt"));
   const [value, loading, error] = useCollectionOnce(q);
@@ -11,20 +12,8 @@ const Home = () => {
   return (
     <div>
         {error && <strong>Error: {JSON.stringify(error)}</strong>}
-        <ThreeDots
-          height="60"
-          width="60"
-          radius="9"
-          color="#ffffff"
-          ariaLabel="Loading DB..."
-          wrapperStyle={{
-            position: "absolute",
-            transform: "translate(-50%, -50%)",
-            left: "50%",
-            top: "50%"
-          }}
-          visible={loading}
-        />
+        <LoadingSpinner visible={loading}/>
+
         {value && (
           <div>
             {value.docs.map((doc) => (
