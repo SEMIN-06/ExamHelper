@@ -4,16 +4,13 @@ import { toast } from 'react-toastify';
 import { fireStore } from '../Firebase';
 import { doc, DocumentData, getDoc, deleteDoc } from 'firebase/firestore';
 import LoadingSpinner from '../components/LoadingSpinner';
-import useModal from '../hooks/useModal';
 
-// TODO: UI 꾸미기
-const Project = () => {
+const Learn = () => {
   const params = useParams();
   const navigate = useNavigate();
   const projectId = useRef<string>("");
   const [loaded, setLoaded] = useState<boolean>(false);
   const [projectDBData, setProjectDBData] = useState<DocumentData>();
-  const { showModal } = useModal();
 
   const goBackProblem = (errorCode: string) => {
     navigate(-1);
@@ -26,27 +23,6 @@ const Project = () => {
       draggable: true,
       progress: undefined,
       theme: "dark"
-    });
-  };
-
-  const deleteProject = () => {
-    showModal({
-      text: "정말 이 프로젝트를 삭제할까요?",
-      callback: (confirmed: boolean) => {
-        confirmed && deleteDoc(doc(fireStore, "projects", projectId.current)).finally(() => {
-          navigate("/");
-          toast("프로젝트를 삭제했어요.", {
-            position: "bottom-left",
-            autoClose: 2000,
-            hideProgressBar: true,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-            theme: "dark"
-          });
-        });
-      }
     });
   };
 
@@ -76,10 +52,6 @@ const Project = () => {
         <>
           <h2>{projectDBData.title}</h2>
           <h2>{projectId.current}</h2>
-          <Link to={`/project/${projectId.current}/edit`}><button>수정</button></Link>
-          <button onClick={deleteProject}>삭제</button>
-          <Link to={`/project/${projectId.current}/learn`}><button>Learn</button></Link>
-          <Link to={`/project/${projectId.current}/print`}><button>Print</button></Link>
         </>
 
       }
@@ -87,4 +59,4 @@ const Project = () => {
   );
 };
 
-export default Project;
+export default Learn;

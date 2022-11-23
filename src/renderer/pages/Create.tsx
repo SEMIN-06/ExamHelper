@@ -6,8 +6,9 @@ import { fireStore } from '../Firebase';
 import { useDocumentOnce } from 'react-firebase-hooks/firestore';
 import { Link, useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
-import usePrompt from "renderer/hooks/useBlockerPrompt";
-import LoadingSpinner from "renderer/components/LoadingSpinner";
+import usePrompt from "../hooks/useBlockerPrompt";
+import LoadingSpinner from "../components/LoadingSpinner";
+import { useHotkeys } from 'react-hotkeys-hook';
 
 import trashIcon from "../../../assets/svgs/trash.svg";
 import "../styles/animations.css";
@@ -377,7 +378,7 @@ const Create = ({ stickyAble }: CreateProps) => {
 
   const saveData = async () => {
     if (SubjectInputRef.current?.value == "") {
-      toast("제목이 입력되지 않았어요.", {
+      toast("프로젝트의 제목이 입력되지 않았어요.", {
         position: "bottom-left",
         autoClose: 2000,
         hideProgressBar: true,
@@ -387,11 +388,13 @@ const Create = ({ stickyAble }: CreateProps) => {
         progress: undefined,
         theme: "dark"
       });
-      return;
+      SubjectInputRef.current?.focus();
+      return;;
     }
 
     for (let i = 0; i < questions.length; i++) {
       const _value = questions[i];
+      console.log(i, _value.subject, _value.content);
       if (_value.subject == "") {
         toast("제목이 입력되지 않은 문제가 있어요.", {
           position: "bottom-left",
@@ -403,6 +406,8 @@ const Create = ({ stickyAble }: CreateProps) => {
           progress: undefined,
           theme: "dark"
         });
+        const element = _value.nodeRef.current.getElementsByClassName("subjectInput")[0] as HTMLElement;
+        element.focus();
         return
       } else if (_value.content == "") {
         toast("내용이 입력되지 않은 문제가 있어요.", {
@@ -415,6 +420,8 @@ const Create = ({ stickyAble }: CreateProps) => {
           progress: undefined,
           theme: "dark"
         });
+        const element = _value.nodeRef.current.getElementsByClassName("contentInput")[0] as HTMLElement;
+        element.focus();
         return
       }
     }
@@ -490,6 +497,10 @@ const Create = ({ stickyAble }: CreateProps) => {
     }
   };
 
+  useHotkeys('ctrl+s', () => {
+    saveData();
+  }, [questions]);
+
   const [projectDbValue, projectDbLoading, projectDbError] = useDocumentOnce(doc(fireStore, "projects", projectId.current));
   useEffect(() => {
     if (!projectDbLoading) {
@@ -557,12 +568,12 @@ const Create = ({ stickyAble }: CreateProps) => {
                   </QuestionToolBar>
                   <QuestionContent>
                     <QuestionInputWrapper width="15%">
-                      <QuestionInput ref={lastQuestionRef} contentEditable="true" aria-multiline="false" spellCheck="false" suppressContentEditableWarning={true} tabIndex={1} onInput={editTempQuestionSubjectData(i)} onBlur={() => updateQuestionSubjectData(i)}>{value.subject}</QuestionInput>
+                      <QuestionInput ref={lastQuestionRef} className="subjectInput" contentEditable="true" aria-multiline="false" spellCheck="false" suppressContentEditableWarning={true} tabIndex={1} onInput={editTempQuestionSubjectData(i)} onBlur={() => updateQuestionSubjectData(i)}>{value.subject}</QuestionInput>
                       <QuestionInputBorder/>
                       <QuestionInputLabel>제목</QuestionInputLabel>
                     </QuestionInputWrapper>
                     <QuestionInputWrapper width="85%">
-                      <QuestionInput role="textbox" contentEditable="true" aria-multiline="true" spellCheck="false" suppressContentEditableWarning={true} tabIndex={1} onInput={editTempQuestionContentData(i)} onBlur={() => updateQuestionContentData(i)}>{value.content}</QuestionInput>
+                      <QuestionInput className="contentInput" role="textbox" contentEditable="true" aria-multiline="true" spellCheck="false" suppressContentEditableWarning={true} tabIndex={1} onInput={editTempQuestionContentData(i)} onBlur={() => updateQuestionContentData(i)}>{value.content}</QuestionInput>
                       <QuestionInputBorder/>
                       <QuestionInputLabel>내용</QuestionInputLabel>
                     </QuestionInputWrapper>
