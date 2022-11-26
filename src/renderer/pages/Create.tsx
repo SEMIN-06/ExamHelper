@@ -14,8 +14,14 @@ import trashIcon from "../../../assets/svgs/trash.svg";
 import "../styles/animations.css";
 import 'react-toastify/dist/ReactToastify.css';
 
-interface CreateProps {
-  stickyAble: boolean;
+interface IQuestion {
+  [key: string]: any;
+	id?: number;
+  nodeRef?: any;
+  subject: string;
+  content: string;
+  meaning: string;
+  inputs?: any;
 }
 
 const CreateWrapper = styled.div`
@@ -216,7 +222,7 @@ const QuestionInputBorder = styled.div`
 `;
 
 const QuestionInputLabel = styled.span`
-  font-weight: 500;
+  font-weight: 700;
   font-size: 14px;
 
   color: #1E1E1E;
@@ -274,7 +280,7 @@ const NewQuestionText = styled.div`
   transition: all .12s cubic-bezier(.47,0,.745,.715);
 `;
 
-const Create = ({ stickyAble }: CreateProps) => {
+const Create = () => {
   const params = useParams();
   const navigate = useNavigate();
   const projectId = useRef<string>(params.projectId ? params.projectId : (Math.random() + 1).toString(36).substring(7));
@@ -284,58 +290,34 @@ const Create = ({ stickyAble }: CreateProps) => {
 
   usePrompt("저장 되지 않은 항목이 있어요. 정말 나갈까요?", naviBlocked);
 
-  const [questions, setQuestions] = useState([{
-    id: Math.random(),
-    nodeRef: createRef(),
-    subject: "",
-    content: "",
-    _subjectInput: "",
-    _contentInput: ""
-  }, {
-    id: Math.random(),
-    nodeRef: createRef(),
-    subject: "",
-    content: "",
-    _subjectInput: "",
-    _contentInput: ""
-  }, {
-    id: Math.random(),
-    nodeRef: createRef(),
-    subject: "",
-    content: "",
-    _subjectInput: "",
-    _contentInput: ""
-  }, {
-    id: Math.random(),
-    nodeRef: createRef(),
-    subject: "",
-    content: "",
-    _subjectInput: "",
-    _contentInput: ""
-  }, {
-    id: Math.random(),
-    nodeRef: createRef(),
-    subject: "",
-    content: "",
-    _subjectInput: "",
-    _contentInput: ""
-  }] as any);
-
   const [isNavSticky, setIsNavSticky] = useState(false);
 
-  const SubjectInputRef = useRef<HTMLInputElement>();
-  const lastQuestionRef = useRef<HTMLDivElement>();
+  const SubjectInputRef = useRef<HTMLInputElement>(null);
+  const lastQuestionRef = useRef<HTMLDivElement>(null);
 
-  const addQuestion = () => {
-    const newQuestion = {
+  const createNewQuestion = (subject: string = "", meaning: string = "", content: string = ""): IQuestion => {
+    const newQuestion: IQuestion = {
       id: Math.random(),
       nodeRef: createRef(),
 
-      subject: "",
-      content: "",
-      _subjectInput: "",
-      _contentInput: ""
+      subject: subject,
+      meaning: meaning,
+      content: content,
+      inputs: {
+        subject: subject,
+        meaning: meaning,
+        content: content
+      }
     };
+    return newQuestion;
+  };
+
+  const [questions, setQuestions] = useState<IQuestion[]>([
+    createNewQuestion(), createNewQuestion(), createNewQuestion(), createNewQuestion(), createNewQuestion()
+  ]);
+
+  const addQuestion = () => {
+    const newQuestion: IQuestion = createNewQuestion();
     setQuestions([...questions, newQuestion]);
 
     setTimeout(() => {
@@ -348,31 +330,18 @@ const Create = ({ stickyAble }: CreateProps) => {
     setQuestions(questions.filter((value: any) => value.id !== id));
   };
 
-  const editTempQuestionSubjectData = (index: number) => (e: any) => {
+  const updateQuestionInputData = (type: string, index: number) => (e: any) => {
     const _questions = [...questions];
-    _questions[index]._subjectInput = e.target.innerText;
+
+    _questions[index].inputs[type] = e.target.innerText;
     setQuestions(_questions);
 
     setNaviBlocked(true);
   };
 
-  const editTempQuestionContentData = (index: number) => (e: any) => {
+  const updateQuestionData = (type: string, index: number) => {
     const _questions = [...questions];
-    _questions[index]._contentInput = e.target.innerText;
-    setQuestions(_questions);
-
-    setNaviBlocked(true);
-  };
-
-  const updateQuestionSubjectData = (index: number) => {
-    const _questions = [...questions];
-    _questions[index].subject = _questions[index]._subjectInput;
-    setQuestions(_questions);
-  };
-
-  const updateQuestionContentData = (index: number) => {
-    const _questions = [...questions];
-    _questions[index].content = _questions[index]._contentInput;
+    _questions[index][type] = _questions[index].inputs[type];
     setQuestions(_questions);
   };
 
@@ -389,12 +358,11 @@ const Create = ({ stickyAble }: CreateProps) => {
         theme: "dark"
       });
       SubjectInputRef.current?.focus();
-      return;;
+      return;
     }
 
     for (let i = 0; i < questions.length; i++) {
       const _value = questions[i];
-      console.log(i, _value.subject, _value.content);
       if (_value.subject == "") {
         toast("제목이 입력되지 않은 문제가 있어요.", {
           position: "bottom-left",
@@ -409,8 +377,8 @@ const Create = ({ stickyAble }: CreateProps) => {
         const element = _value.nodeRef.current.getElementsByClassName("subjectInput")[0] as HTMLElement;
         element.focus();
         return
-      } else if (_value.content == "") {
-        toast("내용이 입력되지 않은 문제가 있어요.", {
+      } else if (_value.meaning == "") {
+        toast("뜻이 입력되지 않은 문제가 있어요.", {
           position: "bottom-left",
           autoClose: 2000,
           hideProgressBar: true,
@@ -420,23 +388,25 @@ const Create = ({ stickyAble }: CreateProps) => {
           progress: undefined,
           theme: "dark"
         });
-        const element = _value.nodeRef.current.getElementsByClassName("contentInput")[0] as HTMLElement;
+        const element = _value.nodeRef.current.getElementsByClassName("meaningInput")[0] as HTMLElement;
         element.focus();
         return
       }
     }
 
+    const _questionsfordb: IQuestion[] = [];
+    questions.map((value: any, i: number) => {
+      _questionsfordb[i] = {
+        subject: value.subject,
+        content: value.content,
+        meaning: value.meaning
+      }
+    });
+
     const docRef = doc(fireStore, "projects", projectId.current);
     const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      const _questionsfordb = {} as any;
-      questions.map((value: any, i: number) => {
-        _questionsfordb[i] = {
-          subject: value.subject,
-          content: value.content
-        }
-      });
 
+    if (docSnap.exists()) {
       const toastId = toast.loading("저장 중...", {
         position: "bottom-left",
         autoClose: 2000,
@@ -461,14 +431,6 @@ const Create = ({ stickyAble }: CreateProps) => {
         });
       });
     } else {
-      const _questionsfordb = {} as any;
-      questions.map((value: any, i: number) => {
-        _questionsfordb[i] = {
-          subject: value.subject,
-          content: value.content
-        }
-      });
-
       const toastId = toast.loading("저장 중...", {
         position: "bottom-left",
         autoClose: 2000,
@@ -497,10 +459,6 @@ const Create = ({ stickyAble }: CreateProps) => {
     }
   };
 
-  useHotkeys('ctrl+s', () => {
-    saveData();
-  }, [questions]);
-
   const [projectDbValue, projectDbLoading, projectDbError] = useDocumentOnce(doc(fireStore, "projects", projectId.current));
   useEffect(() => {
     if (!projectDbLoading) {
@@ -508,17 +466,9 @@ const Create = ({ stickyAble }: CreateProps) => {
         if (projectDbValue.data()?.questions) {
           const _questions = Object.values(projectDbValue.data()?.questions);
           if (_questions.length > 0) {
-            const _questionsfordb = {} as any;
+            const _questionsfordb: IQuestion[] = [];
             _questions.map((value: any, i: number) => {
-              _questionsfordb[i] = {
-                id: Math.random(),
-                nodeRef: createRef(),
-
-                subject: value.subject,
-                content: value.content,
-                _subjectInput: value.subject,
-                _contentInput: value.content
-              };
+              _questionsfordb[i] = createNewQuestion(value.subject, value.meaning, value.content);
             });
             setQuestions(Object.values(_questionsfordb));
             setCreated(true);
@@ -530,9 +480,27 @@ const Create = ({ stickyAble }: CreateProps) => {
     }
   }, [projectDbLoading]);
 
+  useHotkeys('ctrl+s', () => {
+    saveData();
+  }, [questions]);
+
+  const handleScroll = () => {
+    if (document.getElementById('app')?.scrollTop as number >= 50) {
+      !isNavSticky && setIsNavSticky(true);
+    } else {
+      setIsNavSticky(false);
+    }
+  };
+
   useEffect(() => {
-    setIsNavSticky(stickyAble);
-  }, [stickyAble]);
+    const timer = setInterval(() => {
+      window.addEventListener('scroll', handleScroll, { capture: true });
+    }, 100);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   const NavBarContent = () => {
     return (
@@ -568,12 +536,17 @@ const Create = ({ stickyAble }: CreateProps) => {
                   </QuestionToolBar>
                   <QuestionContent>
                     <QuestionInputWrapper width="15%">
-                      <QuestionInput ref={lastQuestionRef} className="subjectInput" contentEditable="true" aria-multiline="false" spellCheck="false" suppressContentEditableWarning={true} tabIndex={1} onInput={editTempQuestionSubjectData(i)} onBlur={() => updateQuestionSubjectData(i)}>{value.subject}</QuestionInput>
+                      <QuestionInput ref={lastQuestionRef} className="subjectInput" contentEditable="true" aria-multiline="false" spellCheck="false" suppressContentEditableWarning={true} tabIndex={1} onInput={updateQuestionInputData("subject", i)} onBlur={() => updateQuestionData("subject", i)}>{value.subject}</QuestionInput>
                       <QuestionInputBorder/>
                       <QuestionInputLabel>제목</QuestionInputLabel>
                     </QuestionInputWrapper>
-                    <QuestionInputWrapper width="85%">
-                      <QuestionInput className="contentInput" role="textbox" contentEditable="true" aria-multiline="true" spellCheck="false" suppressContentEditableWarning={true} tabIndex={1} onInput={editTempQuestionContentData(i)} onBlur={() => updateQuestionContentData(i)}>{value.content}</QuestionInput>
+                    <QuestionInputWrapper width="20%">
+                      <QuestionInput className="meaningInput" role="textbox" contentEditable="true" aria-multiline="true" spellCheck="false" suppressContentEditableWarning={true} tabIndex={1} onInput={updateQuestionInputData("meaning", i)} onBlur={() => updateQuestionData("meaning", i)}>{value.meaning}</QuestionInput>
+                      <QuestionInputBorder/>
+                      <QuestionInputLabel>뜻</QuestionInputLabel>
+                    </QuestionInputWrapper>
+                    <QuestionInputWrapper width="65%">
+                      <QuestionInput className="contentInput" role="textbox" contentEditable="true" aria-multiline="true" spellCheck="false" suppressContentEditableWarning={true} tabIndex={1} onInput={updateQuestionInputData("content", i)} onBlur={() => updateQuestionData("content", i)}>{value.content}</QuestionInput>
                       <QuestionInputBorder/>
                       <QuestionInputLabel>내용</QuestionInputLabel>
                     </QuestionInputWrapper>

@@ -53,7 +53,6 @@ const Learn = () => {
           <h2>{projectDBData.title}</h2>
           <h2>{projectId.current}</h2>
         </>
-
       }
     </>
   );

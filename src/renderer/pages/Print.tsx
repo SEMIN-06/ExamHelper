@@ -47,13 +47,25 @@ const Page = styled.div`
   }
 `;
 
+const Text = styled.div`
+  font-family: "SeoulNamsanC";
+  font-weight: 700;
+  font-size: 16px;
+  transform: rotate(-0.03deg);
+
+  .subject {
+    font-family: "SeoulNamsanC";
+    font-weight: 900;
+  }
+`;
+
 const Print = () => {
   const params = useParams();
   const navigate = useNavigate();
   const projectId = useRef<string>("");
   const [loaded, setLoaded] = useState<boolean>(false);
   const [projectDBData, setProjectDBData] = useState<DocumentData>();
-  const printRef = useRef<HTMLElement>(null);
+  const printRef = useRef<HTMLDivElement>(null);
   const [ zoomLevel, setZoomLevel ] = useState<number>(100);
 
   const handlePrint = useReactToPrint({
@@ -93,8 +105,14 @@ const Print = () => {
   }, []);
 
   const questionsData = projectDBData && Object.values(projectDBData.questions).map((value: any) => {
+    const contents = value.content.split("\n");
+    let filterdContent: string = "";
+    (contents.length > 0 && contents[0] != "") && contents.map((value: any, index: number) => {
+      filterdContent += `-> ${index + 1}. ${value}\n`;
+    });
+
     return (
-      <h4><strong>{value.subject}</strong> - {value.content}</h4>
+      <Text><span className="subject">{value.subject}</span> - {value.meaning}<br></br>{filterdContent}</Text>
     );
   })
 
@@ -111,6 +129,8 @@ const Print = () => {
       }
 
       <button onClick={handlePrint}>인쇄</button>
+      <button onClick={() => setZoomLevel(zoomLevel + 10)}>확대</button>
+      <button onClick={() => setZoomLevel(zoomLevel - 10)}>축소</button>
     </>
   );
 };

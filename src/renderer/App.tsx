@@ -21,26 +21,19 @@ const RoutesWrapper = styled.div`
 `;
 
 export default function App() {
-  const scrollRef = useRef<HTMLDivElement>();
-  const [scrollTop, setScrollTop] = useState(0);
-
-  const onScroll = () => {
-    setScrollTop(scrollRef.current.scrollTop);
-  };
-
   return (
     <Router>
       <RecoilRoot>
         <GlobalStyle />
         <Header />
-        <RoutesWrapper ref={scrollRef} onScroll={onScroll}>
+        <RoutesWrapper id="app">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/project/:projectId" element={<Project />} />
-            <Route path="/project/:projectId/edit" element={<Create key="project/edit" stickyAble={scrollTop >= 50} />} />
+            <Route path="/project/:projectId/edit" element={<Create key="project/edit" />} />
             <Route path="/project/:projectId/learn" element={<Learn />} />
             <Route path="/project/:projectId/print" element={<Print />} />
-            <Route path="/create" element={<Create key="create" stickyAble={scrollTop >= 50} />} />
+            <Route path="/create" element={<Create key="create" />} />
           </Routes>
         </RoutesWrapper>
         <GlobalModal />
