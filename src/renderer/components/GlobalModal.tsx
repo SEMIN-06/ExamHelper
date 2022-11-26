@@ -15,9 +15,9 @@ const ModalWrapper = styled.div`
   min-width: 350px;
   max-width: 400px;
   min-height: 100px;
-  background: #1E1E1E;
+  background: rgba(30, 30, 30, 0.95);
   border-radius: 5px;
-  padding: 15px;
+  padding: 15px 15px 0px 15px;
 `;
 
 const ModalText = styled.div`
@@ -27,7 +27,9 @@ const ModalText = styled.div`
 `;
 
 const ModalButtons = styled.div`
-  margin-top: 10px;
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
 `;
 
 const ModalButton = styled.div`

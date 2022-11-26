@@ -1,16 +1,20 @@
-import { createRef, useEffect, useRef, useState } from "react";
+import { createRef, useCallback, useEffect, useRef, useState } from "react";
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { toast } from 'react-toastify';
 import { setDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { fireStore } from '../Firebase';
 import { useDocumentOnce } from 'react-firebase-hooks/firestore';
 import { Link, useNavigate, useParams } from "react-router-dom";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import usePrompt from "../hooks/useBlockerPrompt";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useHotkeys } from 'react-hotkeys-hook';
+import { ContentEditable } from '../components/ContentEditable';
 
-import trashIcon from "../../../assets/svgs/trash.svg";
+import { FiTrash, FiUnderline } from 'react-icons/fi';
+import { BiHighlight } from 'react-icons/bi';
+import { BsTypeBold } from 'react-icons/bs';
+
 import "../styles/animations.css";
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -21,7 +25,6 @@ interface IQuestion {
   subject: string;
   content: string;
   meaning: string;
-  inputs?: any;
 }
 
 const CreateWrapper = styled.div`
@@ -32,7 +35,7 @@ const CreateWrapper = styled.div`
 `;
 
 const Container = styled.div`
-  max-width: 1300px;
+  max-width: 1800px;
   width: 90%;
   height: fit-content;
 `;
@@ -127,6 +130,7 @@ const Input = styled.input`
   width: calc(100% - 10px);
   height: 42px;
   background: #D9D9D9;
+  font-family: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif !important;
   font-weight: 500;
   font-size: 15px;
   padding-left: 10px;
@@ -140,21 +144,11 @@ const Input = styled.input`
   margin-bottom: 20px;
 `;
 
-const TrashButton = styled.img`
-  margin-left: auto;
-  order: 2;
-  cursor: pointer;
-`;
-
-const QuestionWrapper = styled.div`
-  width: 100%;
-  min-height: 161px;
-  height: fit-content;
-  margin-bottom: 10px;
-`;
-
 const QuestionToolBar = styled.div`
   display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
   align-items: center;
 
   padding-left: 15px;
@@ -171,6 +165,70 @@ const QuestionNumber = styled.div`
   font-size: 18px;
 
   color: #1E1E1E;
+`;
+
+const TrashButton = styled(FiTrash)<{disabled?: boolean}>`
+  cursor: pointer;
+  transition: color .12s ease-in-out;
+
+  &:hover {
+    color: #6170F1;
+  };
+
+  ${props => props.disabled && css`
+    &:hover {
+      color: black;
+    };
+
+    cursor: not-allowed;
+  `}
+`;
+
+const EditToolBar = styled.div`
+  display: flex;
+  align-items: center;
+
+  background: #1E1E1E;
+  padding: 5px 5px 5px 13px;
+  border-radius: 20px;
+
+  color: white;
+
+  visibility: hidden;
+  opacity: 0;
+  transition: all .1s ease-in-out;
+`;
+
+const EditToolButton = styled.button`
+  display: flex;
+  align-items: center;
+
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 1px;
+  cursor: pointer;
+  margin-right: 10px;
+
+  svg {
+    cursor: pointer;
+  }
+
+  &:hover svg {
+    color: #6170F1;
+  }
+`;
+
+const QuestionWrapper = styled.div`
+  width: 100%;
+  min-height: 161px;
+  height: fit-content;
+  margin-bottom: 10px;
+
+  &:focus-within ${EditToolBar}{
+    visibility: visible;
+    opacity: 1;
+  }
 `;
 
 const QuestionContent = styled.div`
@@ -191,11 +249,11 @@ const QuestionInputWrapper = styled.div<{width: string}>`
   width: ${props => props.width};
   height: fit-content;
   margin-left: 10px;
-  margin-top: 35px;
-  margin-bottom: 30px;
+  margin-top: 38px;
+  margin-bottom: 32px;
 `;
 
-const QuestionInput = styled.div`
+const QuestionInput = styled(ContentEditable)`
   width: 100%;
   height: fit-content;
   background: transparent;
@@ -293,7 +351,7 @@ const Create = () => {
   const [isNavSticky, setIsNavSticky] = useState(false);
 
   const SubjectInputRef = useRef<HTMLInputElement>(null);
-  const lastQuestionRef = useRef<HTMLDivElement>(null);
+  const questionsCbRef = useRef<() => void | undefined>();
 
   const createNewQuestion = (subject: string = "", meaning: string = "", content: string = ""): IQuestion => {
     const newQuestion: IQuestion = {
@@ -302,12 +360,7 @@ const Create = () => {
 
       subject: subject,
       meaning: meaning,
-      content: content,
-      inputs: {
-        subject: subject,
-        meaning: meaning,
-        content: content
-      }
+      content: content
     };
     return newQuestion;
   };
@@ -320,29 +373,31 @@ const Create = () => {
     const newQuestion: IQuestion = createNewQuestion();
     setQuestions([...questions, newQuestion]);
 
-    setTimeout(() => {
-      lastQuestionRef.current?.focus();
-      lastQuestionRef.current?.scrollIntoView({behavior: 'smooth'});
-    }, 0);
+    questionsCbRef.current = () => {
+      const element = newQuestion.nodeRef.current.getElementsByClassName("subjectInput")[0] as HTMLElement;
+      element.focus();
+      element.scrollIntoView({behavior: 'smooth'});
+    }
   };
+
+  useEffect(() => {
+    if (questionsCbRef.current) {
+      questionsCbRef.current();
+      questionsCbRef.current = undefined;
+    }
+  }, [questions]);
 
   const deleteQuestion = (id: number) => {
     setQuestions(questions.filter((value: any) => value.id !== id));
   };
 
-  const updateQuestionInputData = (type: string, index: number) => (e: any) => {
+  const updateQuestionInputData = (type: string, index: number, e: any) => {
     const _questions = [...questions];
 
-    _questions[index].inputs[type] = e.target.innerText;
+    _questions[index][type] = e.target.value;
     setQuestions(_questions);
 
     setNaviBlocked(true);
-  };
-
-  const updateQuestionData = (type: string, index: number) => {
-    const _questions = [...questions];
-    _questions[index][type] = _questions[index].inputs[type];
-    setQuestions(_questions);
   };
 
   const saveData = async () => {
@@ -377,8 +432,8 @@ const Create = () => {
         const element = _value.nodeRef.current.getElementsByClassName("subjectInput")[0] as HTMLElement;
         element.focus();
         return
-      } else if (_value.meaning == "") {
-        toast("뜻이 입력되지 않은 문제가 있어요.", {
+      } else if (_value.meaning == "" && _value.content == "") {
+        toast("뜻과 내용이 입력되지 않은 문제가 있어요.", {
           position: "bottom-left",
           autoClose: 2000,
           hideProgressBar: true,
@@ -390,6 +445,7 @@ const Create = () => {
         });
         const element = _value.nodeRef.current.getElementsByClassName("meaningInput")[0] as HTMLElement;
         element.focus();
+
         return
       }
     }
@@ -397,6 +453,7 @@ const Create = () => {
     const _questionsfordb: IQuestion[] = [];
     questions.map((value: any, i: number) => {
       _questionsfordb[i] = {
+        id: value.id,
         subject: value.subject,
         content: value.content,
         meaning: value.meaning
@@ -514,6 +571,20 @@ const Create = () => {
     )
   };
 
+  const setTextDesign = (event: any, type: string) => {
+    event.preventDefault();
+    if (type == "highlight") {
+      const colour = document.queryCommandValue("backColor");
+      if (colour === 'rgb(247, 224, 72)') {
+          document.execCommand("hiliteColor", false, "transparent");
+      } else {
+          document.execCommand("hiliteColor", false, "#f7e048");
+      }
+    } else {
+      document.execCommand(type);
+    }
+  };
+
   return (
     <CreateWrapper>
       <LoadingSpinner visible={projectDbLoading && !loaded}/>
@@ -524,7 +595,7 @@ const Create = () => {
       {(!projectDbLoading && loaded) &&
         <Container>
           <NavBar sticky={isNavSticky}><NavBarContent/></NavBar>
-          <Input placeholder="제목을 입력하세요." type="text" spellCheck="false" ref={SubjectInputRef} defaultValue={projectDbValue?.data()?.title} onInput={() => setNaviBlocked(true)}/>
+          <Input placeholder="제목을 입력하세요." type="text" spellCheck="false" ref={SubjectInputRef} defaultValue={projectDbValue?.data()?.title} tabIndex={1} onInput={() => setNaviBlocked(true)}/>
 
           <TransitionGroup>
             {questions.map((value: any, i: number) => (
@@ -532,21 +603,49 @@ const Create = () => {
                 <QuestionWrapper ref={value.nodeRef}>
                   <QuestionToolBar>
                     <QuestionNumber>{i + 1}</QuestionNumber>
-                    {(questions.length > 1) ? <TrashButton src={trashIcon} onClick={() => deleteQuestion(value.id)}/> : <TrashButton src={trashIcon} style={{cursor: "not-allowed"}}/>}
+                    <EditToolBar>
+                      <EditToolButton onMouseDown={(e: any) => setTextDesign(e, "bold")} style={{marginRight: "5px"}}>
+                        <BsTypeBold size={"22px"}/>
+                      </EditToolButton>
+
+                      <EditToolButton onMouseDown={(e: any) => setTextDesign(e, "highlight")}>
+                        <BiHighlight size={"22px"}/>
+                      </EditToolButton>
+
+                      <EditToolButton onMouseDown={(e: any) => setTextDesign(e, "underline")}>
+                        <FiUnderline size={"22px"}/>
+                      </EditToolButton>
+                    </EditToolBar>
+                    {(questions.length > 1) ? <TrashButton size={"18px"} onClick={() => {setNaviBlocked(true); deleteQuestion(value.id);}}/> : <TrashButton size={"18px"} disabled={true} />}
                   </QuestionToolBar>
                   <QuestionContent>
-                    <QuestionInputWrapper width="15%">
-                      <QuestionInput ref={lastQuestionRef} className="subjectInput" contentEditable="true" aria-multiline="false" spellCheck="false" suppressContentEditableWarning={true} tabIndex={1} onInput={updateQuestionInputData("subject", i)} onBlur={() => updateQuestionData("subject", i)}>{value.subject}</QuestionInput>
+                    <QuestionInputWrapper width="10%">
+                      <QuestionInput
+                        html={value.subject}
+                        className="subjectInput"
+                        tabIndex={1}
+                        onChange={(e: any) => updateQuestionInputData("subject", i, e)}
+                      />
                       <QuestionInputBorder/>
                       <QuestionInputLabel>제목</QuestionInputLabel>
                     </QuestionInputWrapper>
-                    <QuestionInputWrapper width="20%">
-                      <QuestionInput className="meaningInput" role="textbox" contentEditable="true" aria-multiline="true" spellCheck="false" suppressContentEditableWarning={true} tabIndex={1} onInput={updateQuestionInputData("meaning", i)} onBlur={() => updateQuestionData("meaning", i)}>{value.meaning}</QuestionInput>
+                    <QuestionInputWrapper width="25%">
+                      <QuestionInput
+                        html={value.meaning}
+                        className="meaningInput"
+                        tabIndex={1}
+                        onChange={(e: any) => updateQuestionInputData("meaning", i, e)}
+                      />
                       <QuestionInputBorder/>
                       <QuestionInputLabel>뜻</QuestionInputLabel>
-                    </QuestionInputWrapper>
+                      </QuestionInputWrapper>
                     <QuestionInputWrapper width="65%">
-                      <QuestionInput className="contentInput" role="textbox" contentEditable="true" aria-multiline="true" spellCheck="false" suppressContentEditableWarning={true} tabIndex={1} onInput={updateQuestionInputData("content", i)} onBlur={() => updateQuestionData("content", i)}>{value.content}</QuestionInput>
+                      <QuestionInput
+                        html={value.content}
+                        className="contentInput"
+                        tabIndex={1}
+                        onChange={(e: any) => updateQuestionInputData("content", i, e)}
+                      />
                       <QuestionInputBorder/>
                       <QuestionInputLabel>내용</QuestionInputLabel>
                     </QuestionInputWrapper>

@@ -7,6 +7,8 @@ import styled from 'styled-components';
 import { useReactToPrint } from 'react-to-print';
 import LoadingSpinner from '../components/LoadingSpinner';
 
+const NumberCircles = [ "①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩", "⑪", "⑫", "⑬", "⑭", "⑮" ]
+
 const PrintWrapper = styled.div<{zoomLevel: number}>`
   display: flex;
   vertical-align: middle;
@@ -48,7 +50,7 @@ const Page = styled.div`
 `;
 
 const Text = styled.div`
-  font-family: "SeoulNamsanC";
+  font-family: "SeoulNamsanC" !important;
   font-weight: 700;
   font-size: 16px;
   transform: rotate(-0.03deg);
@@ -57,6 +59,20 @@ const Text = styled.div`
     font-family: "SeoulNamsanC";
     font-weight: 900;
   }
+
+  p, span {
+    font-family: "SeoulNamsanC" !important;
+    font-weight: 700 !important;
+
+    span {
+      border-radius: 5px;
+    }
+  }
+`;
+
+const Buttons = styled.div`
+  position: absolute;
+  top: 10%;
 `;
 
 const Print = () => {
@@ -104,15 +120,20 @@ const Print = () => {
     fn();
   }, []);
 
-  const questionsData = projectDBData && Object.values(projectDBData.questions).map((value: any) => {
-    const contents = value.content.split("\n");
+  const questionsData = projectDBData && Object.values(projectDBData.questions).map((value: any, index: number) => {
+    value.content = value.content.replace(/<div>/gi, "<br>").replace(/<\/div>/gi, "");
+    value.content = value.content.replaceAll("<br>-&gt;", "\n    -&gt;");
+    const contents = value.content.split("<br>");
+
     let filterdContent: string = "";
     (contents.length > 0 && contents[0] != "") && contents.map((value: any, index: number) => {
-      filterdContent += `-> ${index + 1}. ${value}\n`;
+      filterdContent += `-> ${NumberCircles[index]} ${value}<br>`;
     });
 
     return (
-      <Text><span className="subject">{value.subject}</span> - {value.meaning}<br></br>{filterdContent}</Text>
+      <Text key={value.id}>
+        <span className="subject">{index + 1}. {value.subject}</span> - <span dangerouslySetInnerHTML={{ __html: value.meaning }} /><br></br><p dangerouslySetInnerHTML={{ __html: filterdContent }}/>
+      </Text>
     );
   })
 
@@ -128,9 +149,15 @@ const Print = () => {
         </PrintWrapper>
       }
 
-      <button onClick={handlePrint}>인쇄</button>
-      <button onClick={() => setZoomLevel(zoomLevel + 10)}>확대</button>
-      <button onClick={() => setZoomLevel(zoomLevel - 10)}>축소</button>
+      <Buttons>
+        <button onClick={() => navigate(-1)}>이전</button>
+        <br></br>
+        <button onClick={handlePrint}>인쇄</button>
+        <br></br>
+        <button onClick={() => setZoomLevel(zoomLevel + 10)}>확대</button>
+        <br></br>
+        <button onClick={() => setZoomLevel(zoomLevel - 10)}>축소</button>
+      </Buttons>
     </>
   );
 };

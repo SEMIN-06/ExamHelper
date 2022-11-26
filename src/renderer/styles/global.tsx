@@ -60,9 +60,6 @@ export default createGlobalStyle`
   }
 
   * {
-    font-family: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
-    font-weight: 400;
-
     margin: 0;
     padding: 0;
   }
@@ -87,8 +84,24 @@ export default createGlobalStyle`
   }
 
   body {
+    font-family: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+    font-weight: 400;
+
     background-color: #2C2C2C;
     overflow: hidden;
+  }
+
+  b {
+    font-weight: 900 !important;
+
+    i {
+      font-weight: 900 !important;
+    }
+  }
+
+  .Toastify__toast-body {
+    font-family: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif !important;
+    font-weight: 400;
   }
 
 `;
