@@ -61,8 +61,8 @@ const Text = styled.div`
   }
 
   p, span {
-    font-family: "SeoulNamsanC" !important;
-    font-weight: 700 !important;
+    font-family: "SeoulNamsanC";
+    font-weight: 700;
 
     span {
       border-radius: 5px;
@@ -133,6 +133,7 @@ const Print = () => {
     return (
       <Text key={value.id}>
         <span className="subject">{index + 1}. {value.subject}</span> - <span dangerouslySetInnerHTML={{ __html: value.meaning }} /><br></br><p dangerouslySetInnerHTML={{ __html: filterdContent }}/>
+        {value.attachImage && <img src={value.attachImage} style={{ maxWidth: "30%", maxHeight: "30%" }} />}
       </Text>
     );
   })
