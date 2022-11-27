@@ -624,7 +624,6 @@ const Create = () => {
     }
   };
 
-  // TODO: 이미지 업로드 뭐한지 보이게 하기 업로드해도 삭제 버튼 추가 , create랑 print에 둘다 이미지 표시하게
   const [uploadImageVisible, setUploadImageVisible] = useState<boolean[]>([]);
 
   return (
@@ -643,7 +642,7 @@ const Create = () => {
               <CSSTransition key={value.id} nodeRef={value.nodeRef} timeout={200} classNames="questionAnimation">
                 <QuestionWrapper ref={value.nodeRef}>
                   <UploadImageWrapper visible={uploadImageVisible[i]} onClick={(e: any) => e.stopPropagation()}>
-                    <input className="uploadImageInput" type="file" accept=".png,.jpg,.gif,.bmp" style={{ width: "200px" }} onChange={() => (value.nodeRef.current.getElementsByClassName("deleteImageInput")[0] as HTMLInputElement).value = "no"}></input>
+                    <input className="uploadImageInput" type="file" accept=".png,.jpg,.gif,.bmp" style={{ width: "200px" }} onChange={() => {(value.nodeRef.current.getElementsByClassName("deleteImageInput")[0] as HTMLInputElement).value = "no"; setNaviBlocked(true);}}></input>
                     <input type="hidden" className="deleteImageInput"></input>
                     <button onClick={() => {(value.nodeRef.current.getElementsByClassName("deleteImageInput")[0] as HTMLInputElement).value = "yes"}}>삭제</button>
                     <br></br>
