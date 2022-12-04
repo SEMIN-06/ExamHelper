@@ -47,6 +47,7 @@ export const ContentEditable: React.FC<ContentEditableProps> = ({
   return (
     <ReactContentEditable
       {...props}
+      spellCheck="false"
       onChange={
         onChange
           ? (...args) => {

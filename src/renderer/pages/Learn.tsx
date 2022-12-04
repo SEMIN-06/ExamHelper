@@ -172,12 +172,13 @@ const Print = () => {
       return element;
     };
 
+    const filterdSubjectElement = highlightMadeFunc(value.subject);
     const filterdContentElement = highlightMadeFunc(filterdContent);
     const filterdMeaningElement = highlightMadeFunc(value.meaning);
 
     return (
       <Text key={value.id}>
-        <span className="subject">{index + 1}. {value.subject}</span> - <span dangerouslySetInnerHTML={{ __html: filterdMeaningElement.innerHTML }} /><br></br><p dangerouslySetInnerHTML={{ __html: filterdContentElement.innerHTML }}/>
+        <span className="subject">{index + 1}. <span dangerouslySetInnerHTML={{ __html: filterdSubjectElement.innerHTML }} /></span> - <span dangerouslySetInnerHTML={{ __html: filterdMeaningElement.innerHTML }} /><br></br><p dangerouslySetInnerHTML={{ __html: filterdContentElement.innerHTML }}/>
         {value.attachImage && <img src={value.attachImage} style={{ maxWidth: "30%", maxHeight: "30%" }} />}
       </Text>
     );
