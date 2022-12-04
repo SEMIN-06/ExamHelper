@@ -48,8 +48,7 @@ const configuration: webpack.Configuration = {
 
   plugins: [
     new webpack.EnvironmentPlugin({
-      //NODE_ENV: 'production',
-      NODE_ENV: 'development',
+      NODE_ENV: 'production',
     }),
   ],
 };
