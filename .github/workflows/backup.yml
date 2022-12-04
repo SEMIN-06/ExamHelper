@@ -16,7 +16,7 @@ jobs:
       - run: npm install -g node-firestore-import-export
       - name: Get current date
         id: date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d-%H-%M-%S')"
       - run: firestore-export --accountCredentials firestore_key.json --backupFile backup/${{ steps.date.outputs.date }}.json -p
       - name: Add & Commit
         uses: EndBug/add-and-commit@v4.4.0
