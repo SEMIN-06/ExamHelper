@@ -215,7 +215,7 @@ const Print = () => {
     highlightElements.forEach((value) => {
       const ogText = value.getAttribute("data-text");
       const writtenText = value.textContent;
-      if (ogText != writtenText) {
+      if (ogText?.replaceAll(" ", "") != writtenText?.replaceAll(" ", "")) {
         value.setAttribute("data-hover", ogText as string);
         (value as any).style.color = "#f21f4a";
         if (writtenText == "" || writtenText == null) {
