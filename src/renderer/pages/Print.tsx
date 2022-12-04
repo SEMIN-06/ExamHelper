@@ -57,7 +57,11 @@ const Text = styled.div`
 
   .subject {
     font-family: "SeoulNamsanC";
-    font-weight: 900;
+    font-weight: 900 !important;
+
+    span {
+      font-weight: 900 !important;
+    }
   }
 
   p, span {
@@ -122,7 +126,7 @@ const Print = () => {
 
   const questionsData = projectDBData && Object.values(projectDBData.questions).map((value: any, index: number) => {
     value.content = value.content.replace(/<div>/gi, "<br>").replace(/<\/div>/gi, "");
-    value.content = value.content.replaceAll("<br>-&gt;", "\n    -&gt;");
+    value.content = value.content.replaceAll("<br>-&gt;", "\n    -&gt;"); // -&gt; = >
     const contents = value.content.split("<br>");
 
     let filterdContent: string = "";
@@ -132,7 +136,7 @@ const Print = () => {
 
     return (
       <Text key={value.id}>
-        <span className="subject">{index + 1}. <span dangerouslySetInnerHTML={{ __html: value.subject }} /></span> - <span dangerouslySetInnerHTML={{ __html: value.meaning }} /><br></br><p dangerouslySetInnerHTML={{ __html: filterdContent }}/>
+        <span className="subject" dangerouslySetInnerHTML={{ __html: `${index + 1}. ${value.subject}` }} /> - <span dangerouslySetInnerHTML={{ __html: value.meaning }} /><br></br><p dangerouslySetInnerHTML={{ __html: filterdContent }}/>
         {value.attachImage && <img src={value.attachImage} style={{ maxWidth: "30%", maxHeight: "30%" }} />}
       </Text>
     );

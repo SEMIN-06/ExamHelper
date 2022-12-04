@@ -57,7 +57,11 @@ const Text = styled.div`
 
   .subject {
     font-family: "SeoulNamsanC";
-    font-weight: 900;
+    font-weight: 900 !important;
+
+    span {
+      font-weight: 900 !important;
+    }
   }
 
   p, span {
@@ -143,8 +147,9 @@ const Print = () => {
     };
 
     value.content = value.content.replace(/<div>/gi, "<br>").replace(/<\/div>/gi, "");
-    value.content = value.content.replaceAll("<br>-&gt;", "\n    -&gt;");
+    value.content = value.content.replaceAll("<br>-&gt;", "\n    -&gt;"); // -&gt; = >
 
+    value.subject = value.subject.replaceAll(highlightReplaces.from, highlightReplaces.to);
     value.meaning = value.meaning.replaceAll(highlightReplaces.from, highlightReplaces.to);
     value.content = value.content.replaceAll(highlightReplaces.from, highlightReplaces.to);
 
@@ -178,7 +183,7 @@ const Print = () => {
 
     return (
       <Text key={value.id}>
-        <span className="subject">{index + 1}. <span dangerouslySetInnerHTML={{ __html: filterdSubjectElement.innerHTML }} /></span> - <span dangerouslySetInnerHTML={{ __html: filterdMeaningElement.innerHTML }} /><br></br><p dangerouslySetInnerHTML={{ __html: filterdContentElement.innerHTML }}/>
+        <span className="subject" dangerouslySetInnerHTML={{ __html: `${index + 1}. ${filterdSubjectElement.innerHTML}` }} /> - <span dangerouslySetInnerHTML={{ __html: filterdMeaningElement.innerHTML }} /><br></br><p dangerouslySetInnerHTML={{ __html: filterdContentElement.innerHTML }}/>
         {value.attachImage && <img src={value.attachImage} style={{ maxWidth: "30%", maxHeight: "30%" }} />}
       </Text>
     );

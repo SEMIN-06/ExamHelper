@@ -120,7 +120,6 @@ const StickyNavBarBox = styled.div<{sticky: boolean}>`
 const StickyNavBar = styled.div<{sticky: boolean}>`
   display: flex;
   align-items: center;
-  max-width: 1300px;
   width: 89.3%;
   height: 80px;
   background: transparent;
