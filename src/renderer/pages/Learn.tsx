@@ -79,6 +79,7 @@ const Text = styled.div`
   .editable {
     display: inline-block;
     white-space: nowrap;
+    border-radius: 3px;
   }
 
   .editable:before {
@@ -95,6 +96,10 @@ const Text = styled.div`
   .editable:hover:before {
     opacity: 1;
     visibility: visible;
+  }
+
+  .editable:focus {
+    outline: 1.5px solid #242424;
   }
 `;
 
