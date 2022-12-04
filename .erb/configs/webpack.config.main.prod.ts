@@ -58,8 +58,10 @@ const configuration: webpack.Configuration = {
      * development checks
      */
     new webpack.EnvironmentPlugin({
-      NODE_ENV: 'production',
-      DEBUG_PROD: false,
+      //NODE_ENV: 'production',
+      //DEBUG_PROD: false,
+      NODE_ENV: 'development',
+      DEBUG_PROD: true,
       START_MINIMIZED: false,
     }),
 

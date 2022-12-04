@@ -10,8 +10,7 @@ export default class MenuBuilder {
   buildMenu(): Menu {
     if (
       process.env.NODE_ENV === 'development' ||
-      process.env.DEBUG_PROD === 'true' ||
-      true // 나를 위해 그냥 무조건 개발 모드
+      process.env.DEBUG_PROD === 'true'
     ) {
       this.setupDevelopmentEnvironment();
     }
