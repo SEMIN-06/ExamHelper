@@ -237,7 +237,16 @@ const Print = () => {
       progress: undefined,
       theme: "dark"
     });
+  };
 
+  const restore = () => {
+    const highlightElements = document.querySelectorAll(".editable");
+    highlightElements.forEach((value) => {
+      value.removeAttribute("data-hover");
+      (value as any).style.color = "";
+      (value as any).style.background = "";
+      (value as any).style.borderRadius = "";
+    })
   };
 
   return (
@@ -258,6 +267,8 @@ const Print = () => {
         <button onClick={handlePrint}>인쇄</button>
         <br></br>
         <button onClick={checkCorrect}>정답 체크</button>
+        <br></br>
+        <button onClick={restore}>원 상태로</button>
         <br></br>
         <button onClick={() => setZoomLevel(zoomLevel + 10)}>확대</button>
         <br></br>
