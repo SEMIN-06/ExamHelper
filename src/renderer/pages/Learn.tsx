@@ -216,8 +216,12 @@ const Print = () => {
       const ogText = value.getAttribute("data-text");
       const writtenText = value.textContent;
       if (ogText != writtenText) {
-        (value as any).style.color = "red";
         value.setAttribute("data-hover", ogText as string);
+        (value as any).style.color = "#f21f4a";
+        if (writtenText == "" || writtenText == null) {
+          (value as any).style.background = "#f21f4a";
+          (value as any).style.borderRadius = "5px";
+        }
       } else {
         corrects++;
       }
