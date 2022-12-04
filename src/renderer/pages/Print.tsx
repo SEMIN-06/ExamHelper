@@ -24,6 +24,7 @@ const Page = styled.div`
   background-color: white;
   margin-bottom: 0.5cm;
   overflow: hidden;
+  padding: 0.5cm;
 
   box-sizing: border-box;
   -moz-box-sizing: border-box;

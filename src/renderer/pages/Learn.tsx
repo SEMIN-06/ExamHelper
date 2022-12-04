@@ -6,6 +6,7 @@ import { doc, DocumentData, getDoc, deleteDoc } from 'firebase/firestore';
 import styled, { css } from 'styled-components';
 import { useReactToPrint } from 'react-to-print';
 import LoadingSpinner from '../components/LoadingSpinner';
+import useModal from '../hooks/useModal';
 
 const NumberCircles = [ "①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩", "⑪", "⑫", "⑬", "⑭", "⑮" ]
 
@@ -29,6 +30,8 @@ const Page = styled.div`
   -moz-box-sizing: border-box;
 
   white-space: pre-wrap;
+
+  padding: 0.5cm;
 
   @page {
     size: A4;
@@ -73,9 +76,25 @@ const Text = styled.div`
     }
   }
 
-  .highlight {
+  .editable {
     display: inline-block;
     white-space: nowrap;
+  }
+
+  .editable:before {
+    content: attr(data-hover);
+    visibility: hidden;
+    opacity: 0;
+    background-color: rgba(0, 0, 0, 50);
+    color: white;
+    z-index: 1;
+    position: absolute;
+    border-radius: 3px;
+  }
+
+  .editable:hover:before {
+    opacity: 1;
+    visibility: visible;
   }
 `;
 
@@ -140,10 +159,28 @@ const Print = () => {
     }
   }
 
+  const highlightMadeFunc = (content: string) => {
+    const element = document.createElement("div");
+    element.innerHTML = content;
+
+    const highlightElements = element.querySelectorAll(".editable");
+    highlightElements.forEach((value) => {
+      (value as any).style.width = `${getTextWidth(value.textContent as string, "16px SeoulNamsanC")}px`;
+      value.setAttribute("data-text", value.textContent as string);
+      value.textContent = "";
+
+      let _outerHTML = value.outerHTML;
+      _outerHTML = _outerHTML.replaceAll(/(<[bui])/g, "<span");
+      _outerHTML = _outerHTML.replaceAll(/(<[/][bui]>)/g, "</span>");
+      value.outerHTML = _outerHTML;
+    })
+    return element;
+  };
+
   const questionsData = projectDBData && Object.values(projectDBData.questions).map((value: any, index: number) => {
     const highlightReplaces = {
       from: `style="background-color: rgb(247, 224, 72);"`,
-      to: `contenteditable spellCheck="false" class="highlight"`
+      to: `class="editable" contenteditable spellCheck="false"`
     };
 
     value.content = value.content.replace(/<div>/gi, "<br>").replace(/<\/div>/gi, "");
@@ -160,23 +197,6 @@ const Print = () => {
       filterdContent += `-> ${NumberCircles[index]} ${value}<br>`;
     });
 
-    const highlightMadeFunc = (content: string) => {
-      const element = document.createElement("div");
-      element.innerHTML = content;
-
-      const highlightElements = element.querySelectorAll(".highlight");
-      highlightElements.forEach((value) => {
-        (value as any).style.width = `${getTextWidth(value.textContent as string, "16px SeoulNamsanC")}px`;
-        value.textContent = "";
-
-        let _outerHTML = value.outerHTML;
-        _outerHTML = _outerHTML.replaceAll(/(<[bui])/g, "<span");
-        _outerHTML = _outerHTML.replaceAll(/(<[/][bui]>)/g, "</span>");
-        value.outerHTML = _outerHTML;
-      })
-      return element;
-    };
-
     const filterdSubjectElement = highlightMadeFunc(value.subject);
     const filterdContentElement = highlightMadeFunc(filterdContent);
     const filterdMeaningElement = highlightMadeFunc(value.meaning);
@@ -187,7 +207,34 @@ const Print = () => {
         {value.attachImage && <img src={value.attachImage} style={{ maxWidth: "30%", maxHeight: "30%" }} />}
       </Text>
     );
-  })
+  });
+
+  const checkCorrect = () => {
+    const highlightElements = document.querySelectorAll(".editable");
+    let corrects = 0;
+    highlightElements.forEach((value) => {
+      const ogText = value.getAttribute("data-text");
+      const writtenText = value.textContent;
+      if (ogText != writtenText) {
+        (value as any).style.color = "red";
+        value.setAttribute("data-hover", ogText as string);
+      } else {
+        corrects++;
+      }
+    })
+
+    toast(`${corrects} / ${highlightElements.length}`, {
+      position: "bottom-center",
+      autoClose: 30000,
+      hideProgressBar: true,
+      closeOnClick: true,
+      pauseOnHover: false,
+      draggable: true,
+      progress: undefined,
+      theme: "dark"
+    });
+
+  };
 
   return (
     <>
@@ -205,6 +252,8 @@ const Print = () => {
         <button onClick={() => navigate(-1)}>이전</button>
         <br></br>
         <button onClick={handlePrint}>인쇄</button>
+        <br></br>
+        <button onClick={checkCorrect}>정답 체크</button>
         <br></br>
         <button onClick={() => setZoomLevel(zoomLevel + 10)}>확대</button>
         <br></br>
