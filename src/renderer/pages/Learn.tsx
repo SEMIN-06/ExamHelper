@@ -31,8 +31,6 @@ const Page = styled.div`
 
   white-space: pre-wrap;
 
-  padding: 0.5cm;
-
   @page {
     size: A4;
     margin: 0;

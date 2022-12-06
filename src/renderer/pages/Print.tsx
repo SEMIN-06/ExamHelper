@@ -24,7 +24,6 @@ const Page = styled.div`
   background-color: white;
   margin-bottom: 0.5cm;
   overflow: hidden;
-  padding: 0.5cm;
 
   box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -33,11 +32,14 @@ const Page = styled.div`
 
   @page {
     size: A4;
-    margin: 0;
+    margin: 0.3cm;
   }
 
   @media print {
-    margin: 0;
+    @page {
+      margin: 0.3cm;
+    }
+    margin: 0.3cm;
     border: initial;
     border-radius: initial;
     width: initial;
@@ -48,6 +50,7 @@ const Page = styled.div`
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+
 `;
 
 const Text = styled.div`
