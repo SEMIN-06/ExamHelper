@@ -577,7 +577,11 @@ const Create = () => {
 
   useHotkeys('ctrl+s', () => {
     saveData();
-  }, [questions]);
+  }, [questions], {enableOnContentEditable: true});
+
+  useHotkeys('ctrl+h', () => {
+    setTextDesign("highlight");
+  }, {enableOnContentEditable: true});
 
   const handleScroll = () => {
     if (document.getElementById('app')?.scrollTop as number >= 50) {
@@ -609,8 +613,10 @@ const Create = () => {
     )
   };
 
-  const setTextDesign = (event: any, type: string) => {
-    event.preventDefault();
+  const setTextDesign = (type: string, event?: any) => {
+    if (event) {
+      event.preventDefault();
+    }
     if (type == "highlight") {
       const colour = document.queryCommandValue("backColor");
       if (colour === 'rgb(247, 224, 72)') {
@@ -650,15 +656,15 @@ const Create = () => {
                   <QuestionToolBar>
                     <QuestionNumber>{i + 1}</QuestionNumber>
                     <EditToolBar>
-                      <EditToolButton onMouseDown={(e: any) => setTextDesign(e, "bold")} style={{marginRight: "5px"}}>
+                      <EditToolButton onMouseDown={(e: any) => setTextDesign("bold", e)} style={{marginRight: "5px"}}>
                         <BsTypeBold size={"22px"}/>
                       </EditToolButton>
 
-                      <EditToolButton onMouseDown={(e: any) => setTextDesign(e, "highlight")}>
+                      <EditToolButton onMouseDown={(e: any) => setTextDesign("highlight", e)}>
                         <BiHighlight size={"22px"}/>
                       </EditToolButton>
 
-                      <EditToolButton onMouseDown={(e: any) => setTextDesign(e, "underline")}>
+                      <EditToolButton onMouseDown={(e: any) => setTextDesign("underline", e)}>
                         <FiUnderline size={"22px"}/>
                       </EditToolButton>
 
