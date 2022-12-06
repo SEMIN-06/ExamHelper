@@ -70,7 +70,7 @@ const Text = styled.div`
     font-weight: 700;
 
     span {
-      border-radius: 5px;
+      border-radius: 3px;
     }
   }
 
