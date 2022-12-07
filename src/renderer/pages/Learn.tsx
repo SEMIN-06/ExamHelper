@@ -206,7 +206,15 @@ const Print = () => {
 
     return (
       <Text key={value.id}>
-        <span className="subject" dangerouslySetInnerHTML={{ __html: `${index + 1}. ${filterdSubjectElement.innerHTML}` }} /> - <span dangerouslySetInnerHTML={{ __html: filterdMeaningElement.innerHTML }} /><br></br><p dangerouslySetInnerHTML={{ __html: filterdContentElement.innerHTML }}/>
+        {(value.meaning == "" && value.content == "") ?
+          <>
+            <span className="subject">{index + 1}.</span> <span dangerouslySetInnerHTML={{ __html: filterdSubjectElement.innerHTML }} />
+          </>
+        :
+          <>
+            <span className="subject" dangerouslySetInnerHTML={{ __html: `${index + 1}. ${filterdSubjectElement.innerHTML}` }} /> - <span dangerouslySetInnerHTML={{ __html: filterdMeaningElement.innerHTML }} /><br></br><p dangerouslySetInnerHTML={{ __html: filterdContentElement.innerHTML }}/>
+          </>
+        }
         {value.attachImage && <img src={value.attachImage} style={{ maxWidth: "30%", maxHeight: "30%" }} />}
       </Text>
     );

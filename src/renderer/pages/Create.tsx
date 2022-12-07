@@ -361,6 +361,7 @@ const Create = () => {
   const [loaded, setLoaded] = useState<boolean>(false);
   const [created, setCreated] = useState<boolean>(false);
   const [naviBlocked, setNaviBlocked] = useState<boolean>(false);
+  const [saving, setSaving] = useState<boolean>(false);
 
   usePrompt("저장 되지 않은 항목이 있어요. 정말 나갈까요?", naviBlocked);
 
@@ -418,139 +419,133 @@ const Create = () => {
   };
 
   const saveData = async () => {
-    const toastId = toast.loading("저장 중...", {
-      position: "bottom-left",
-      hideProgressBar: true,
-      closeOnClick: true,
-      pauseOnHover: false,
-      draggable: true,
-      progress: undefined,
-      theme: "dark"
-    });
-
-    if (subjectInputRef.current?.value == "") {
-      toast.update(toastId, {
-        render: "프로젝트의 제목이 입력되지 않았어요.",
-        isLoading: false,
-        autoClose: 2000,
+    if (!saving) {
+      setSaving(true);
+      const toastId = toast.loading("저장 중...", {
+        position: "bottom-left",
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "dark"
       });
-      subjectInputRef.current?.focus();
-      return;
-    }
 
-    for (let i = 0; i < questions.length; i++) {
-      const _value = questions[i];
-      if (_value.subject == "") {
+      if (subjectInputRef.current?.value == "") {
         toast.update(toastId, {
-          render: "제목이 입력되지 않은 문제가 있어요.",
+          render: "프로젝트의 제목이 입력되지 않았어요.",
           isLoading: false,
           autoClose: 2000,
         });
-        const element = _value.nodeRef.current.getElementsByClassName("subjectInput")[0] as HTMLElement;
-        element.focus();
-        return
-      } else if (_value.meaning == "" && _value.content == "") {
-        toast.update(toastId, {
-          render: "뜻과 내용이 입력되지 않은 문제가 있어요.",
-          isLoading: false,
-          autoClose: 2000,
-        });
-        const element = _value.nodeRef.current.getElementsByClassName("meaningInput")[0] as HTMLElement;
-        element.focus();
-
-        return
+        subjectInputRef.current?.focus();
+        return;
       }
 
-      const uploadImageElement = _value.nodeRef.current.getElementsByClassName("uploadImageInput")[0] as HTMLInputElement;
-      let attachmentURL = "";
-      if (uploadImageElement.files && (uploadImageElement.files.length > 0)) {
-        const file = uploadImageElement.files[0];
-
-        const metadata = {
-          contentType: file.type
-        };
-
-        const storageRef = ref(storage, "uploaedQuestionImages/" + Math.floor(Math.random() * 1000).toString() + file.name);
-        await uploadBytes(storageRef, file, metadata).then(async (snapshot) => {
-          console.log('Uploaded a blob or file!');
-          await getDownloadURL(snapshot.ref).then((downloadURL) => {
-            console.log('File available at', downloadURL);
-            attachmentURL = downloadURL;
-
-            uploadImageElement.value = "";
-          }).catch((e) => {
-            console.log("upload file error " + e);
+      for (let i = 0; i < questions.length; i++) {
+        const _value = questions[i];
+        if (_value.subject == "") {
+          toast.update(toastId, {
+            render: "제목이 입력되지 않은 문제가 있어요.",
+            isLoading: false,
+            autoClose: 2000,
           });
-        });
-      }
+          const element = _value.nodeRef.current.getElementsByClassName("subjectInput")[0] as HTMLElement;
+          element.focus();
+          return
+        }
 
-      if (attachmentURL != "") {
-        if (_value.attachImage != "") {
-          const storageRef = ref(storage, _value.attachImage);
-          await deleteObject(storageRef).then(() => {
-            console.log("Old image file deleted");
-          }).catch((e) => {
-            console.log("deleted file error " + e);
+        const uploadImageElement = _value.nodeRef.current.getElementsByClassName("uploadImageInput")[0] as HTMLInputElement;
+        let attachmentURL = "";
+        if (uploadImageElement.files && (uploadImageElement.files.length > 0)) {
+          const file = uploadImageElement.files[0];
+
+          const metadata = {
+            contentType: file.type
+          };
+
+          const storageRef = ref(storage, "uploaedQuestionImages/" + Math.floor(Math.random() * 1000).toString() + file.name);
+          await uploadBytes(storageRef, file, metadata).then(async (snapshot) => {
+            console.log('Uploaded a blob or file!');
+            await getDownloadURL(snapshot.ref).then((downloadURL) => {
+              console.log('File available at', downloadURL);
+              attachmentURL = downloadURL;
+
+              uploadImageElement.value = "";
+            }).catch((e) => {
+              console.log("upload file error " + e);
+            });
           });
         }
 
-        _value.attachImage = attachmentURL;
-      } else {
-        if ((_value.nodeRef.current.getElementsByClassName("deleteImageInput")[0] as HTMLInputElement).value == "yes") {
-          (_value.nodeRef.current.getElementsByClassName("deleteImageInput")[0] as HTMLInputElement).value = "no";
-          const storageRef = ref(storage, _value.attachImage);
-          await deleteObject(storageRef).then(() => {
-            console.log("User request image file deleted");
-          }).catch((e) => {
-            console.log("user request deleted file error " + e);
+        if (attachmentURL != "") {
+          if (_value.attachImage != "") {
+            const storageRef = ref(storage, _value.attachImage);
+            await deleteObject(storageRef).then(() => {
+              console.log("Old image file deleted");
+            }).catch((e) => {
+              console.log("deleted file error " + e);
+            });
+          }
+
+          _value.attachImage = attachmentURL;
+        } else {
+          if ((_value.nodeRef.current.getElementsByClassName("deleteImageInput")[0] as HTMLInputElement).value == "yes") {
+            (_value.nodeRef.current.getElementsByClassName("deleteImageInput")[0] as HTMLInputElement).value = "no";
+            const storageRef = ref(storage, _value.attachImage);
+            await deleteObject(storageRef).then(() => {
+              console.log("User request image file deleted");
+            }).catch((e) => {
+              console.log("user request deleted file error " + e);
+            });
+            _value.attachImage = "";
+          };
+        }
+      }
+
+      const _questionsfordb: IQuestion[] = [];
+      questions.map((value: any, i: number) => {
+        _questionsfordb[i] = {
+          id: value.id,
+          subject: value.subject,
+          content: value.content,
+          meaning: value.meaning,
+          attachImage: value.attachImage
+        }
+      });
+
+      const docRef = doc(fireStore, "projects", projectId.current);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        setNaviBlocked(false);
+        await updateDoc(docRef, {
+          title: subjectInputRef.current?.value,
+          editAt: Date.now(),
+          questions: _questionsfordb
+        }).finally(() => {
+          toast.update(toastId, {
+            render: "저장을 완료했어요.",
+            isLoading: false,
+            autoClose: 2000,
           });
-          _value.attachImage = "";
-        };
-      }
-    }
-
-    const _questionsfordb: IQuestion[] = [];
-    questions.map((value: any, i: number) => {
-      _questionsfordb[i] = {
-        id: value.id,
-        subject: value.subject,
-        content: value.content,
-        meaning: value.meaning,
-        attachImage: value.attachImage
-      }
-    });
-
-    const docRef = doc(fireStore, "projects", projectId.current);
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-      setNaviBlocked(false);
-      await updateDoc(docRef, {
-        title: subjectInputRef.current?.value,
-        editAt: Date.now(),
-        questions: _questionsfordb
-      }).finally(() => {
-        toast.update(toastId, {
-          render: "저장을 완료했어요.",
-          isLoading: false,
-          autoClose: 2000,
         });
-      });
-    } else {
-      setNaviBlocked(false);
-      await setDoc(docRef, {
-        title: subjectInputRef.current?.value,
-        createdAt: Date.now(),
-        editAt: Date.now(),
-        questions: _questionsfordb
-      }).finally(() => {
-        navigate(`/project/${projectId.current}`);
-        toast.update(toastId, {
-          render: "프로젝트가 생성되었어요.",
-          isLoading: false,
-          autoClose: 2000,
+      } else {
+        setNaviBlocked(false);
+        await setDoc(docRef, {
+          title: subjectInputRef.current?.value,
+          createdAt: Date.now(),
+          editAt: Date.now(),
+          questions: _questionsfordb
+        }).finally(() => {
+          navigate(`/project/${projectId.current}`);
+          toast.update(toastId, {
+            render: "프로젝트가 생성되었어요.",
+            isLoading: false,
+            autoClose: 2000,
+          });
         });
-      });
+      }
+      setSaving(false);
     }
   };
 
@@ -608,7 +603,7 @@ const Create = () => {
           ? <NavBackLink to={`/project/${projectId.current}`}>{"< 프로젝트로 돌아가기"}</NavBackLink>
           : <NavTitle>프로젝트 만들기</NavTitle>
         }
-        <SaveButton onClick={saveData}>{created ? "저장" : "만들기"}</SaveButton>
+        <SaveButton onClick={saveData}>{saving ? "저장 중..." : (created ? "저장" : "만들기")}</SaveButton>
       </>
     )
   };
