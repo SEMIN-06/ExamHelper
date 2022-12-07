@@ -438,6 +438,7 @@ const Create = () => {
           autoClose: 2000,
         });
         subjectInputRef.current?.focus();
+        setSaving(false);
         return;
       }
 
@@ -451,6 +452,7 @@ const Create = () => {
           });
           const element = _value.nodeRef.current.getElementsByClassName("subjectInput")[0] as HTMLElement;
           element.focus();
+          setSaving(false);
           return
         }
 
@@ -718,7 +720,7 @@ const Create = () => {
             </NewQuestionTextInner>
           </NewQuestionWrapper>
 
-          <SaveButton onClick={saveData} style={{height: "40px", lineHeight: "40px", marginBottom: "30px"}}>{created ? "저장" : "만들기"}</SaveButton>
+          <SaveButton onClick={saveData} style={{height: "40px", lineHeight: "40px", marginBottom: "30px"}}>{saving ? "저장 중..." : (created ? "저장" : "만들기")}</SaveButton>
         </Container>
       }
     </CreateWrapper>
