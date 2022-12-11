@@ -81,7 +81,6 @@ const Text = styled.div`
   }
 
   .editable:before {
-    content: attr(data-hover);
     visibility: hidden;
     opacity: 0;
     background-color: rgba(0, 0, 0, 50);
@@ -92,6 +91,13 @@ const Text = styled.div`
   }
 
   .editable:hover:before {
+    content: attr(data-hover);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .editable:focus:before {
+    content: attr(data-ctrl);
     opacity: 1;
     visibility: visible;
   }
@@ -180,10 +186,11 @@ const Print = () => {
     return element;
   };
 
+  // TODO: React에 맞지 않는 코드 (DOM에 직접 접근)로 리메이크 필요함
   const questionsData = projectDBData && Object.values(projectDBData.questions).map((value: any, index: number) => {
     const highlightReplaces = {
       from: `style="background-color: rgb(247, 224, 72);"`,
-      to: `class="editable" contenteditable spellCheck="false"`
+      to: `class="editable" contenteditable spellCheck="false" onkeydown="if (event.keyCode == 17) { const ogText = this.getAttribute('data-text'); this.setAttribute('data-ctrl', ogText) }" onmousedown="this.setAttribute('data-ctrl', '')" onkeyup="this.setAttribute('data-ctrl', '')"`
     };
 
     value.content = value.content.replace(/<div>/gi, "<br>").replace(/<\/div>/gi, "");
