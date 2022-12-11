@@ -190,7 +190,7 @@ const Print = () => {
   const questionsData = projectDBData && Object.values(projectDBData.questions).map((value: any, index: number) => {
     const highlightReplaces = {
       from: `style="background-color: rgb(247, 224, 72);"`,
-      to: `class="editable" contenteditable spellCheck="false" onkeydown="if (event.keyCode == 17) { const ogText = this.getAttribute('data-text'); this.setAttribute('data-ctrl', ogText) }" onmousedown="this.setAttribute('data-ctrl', '')" onkeyup="this.setAttribute('data-ctrl', '')"`
+      to: `class="editable" contenteditable spellCheck="false" onkeydown="if (event.keyCode == 112) { const ogText = this.getAttribute('data-text'); this.setAttribute('data-ctrl', ogText) }" onmousedown="this.setAttribute('data-ctrl', '')" onkeyup="this.setAttribute('data-ctrl', '')"`
     };
 
     value.content = value.content.replace(/<div>/gi, "<br>").replace(/<\/div>/gi, "");
