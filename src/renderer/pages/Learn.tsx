@@ -33,11 +33,14 @@ const Page = styled.div`
 
   @page {
     size: A4;
-    margin: 0;
+    margin: 0.3cm;
   }
 
   @media print {
-    margin: 0;
+    @page {
+      margin: 0.3cm;
+    }
+    margin: 0.3cm;
     border: initial;
     border-radius: initial;
     width: initial;
