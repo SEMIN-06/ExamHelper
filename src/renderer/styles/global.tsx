@@ -103,12 +103,6 @@ export default createGlobalStyle`
     }
   }
 
-  u {
-    span {
-      text-decoration: underline !important;
-    }
-  }
-
   .Toastify__toast-body {
     font-family: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif !important;
     font-weight: 400;

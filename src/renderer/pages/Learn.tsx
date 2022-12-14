@@ -77,6 +77,10 @@ const Text = styled.div`
     }
   }
 
+  u {
+    text-decoration: none !important;
+  }
+
   .editable {
     display: inline-block;
     white-space: nowrap;
