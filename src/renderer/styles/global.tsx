@@ -97,6 +97,16 @@ export default createGlobalStyle`
     i {
       font-weight: 900 !important;
     }
+
+    span {
+      font-weight: 900 !important;
+    }
+  }
+
+  u {
+    span {
+      text-decoration: underline !important;
+    }
   }
 
   .Toastify__toast-body {
