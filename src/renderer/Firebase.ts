@@ -16,4 +16,4 @@ const app = initializeApp(firebaseConfig);
 const fireStore = getFirestore(app);
 const storage = getStorage(app);
 
-export { fireStore, storage};
+export { fireStore, storage };
