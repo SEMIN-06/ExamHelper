@@ -70,10 +70,11 @@ const PrintWrapper = styled.div<{ zoomLevel: number }>`
   zoom: ${(props) => props.zoomLevel}%;
 `;
 
-const Page = styled.div`
+const Page = styled.div<{ isDarkMode: boolean }>`
   width: 21cm;
   min-height: 29.7cm;
-  background-color: white;
+  background-color: ${(props) => (props.isDarkMode ? '#0E0E10' : 'white')};
+  color: ${(props) => (props.isDarkMode ? 'white' : 'black')};
   margin-bottom: 0.5cm;
   overflow: hidden;
 
@@ -126,6 +127,7 @@ const Text = styled.div`
 
     span {
       border-radius: 3px;
+      color: black !important;
     }
   }
 
@@ -179,6 +181,7 @@ const Print = () => {
   const [projectDBData, setProjectDBData] = useState<DocumentData>();
   const printRef = useRef<HTMLDivElement>(null);
   const [zoomLevel, setZoomLevel] = useState<number>(100);
+  const [isDarkMode, setDarkMode] = useState<boolean>(false);
 
   const handlePrint = useReactToPrint({
     content: () => printRef.current,
@@ -379,7 +382,9 @@ const Print = () => {
 
       {loaded && projectDBData && (
         <PrintWrapper zoomLevel={zoomLevel}>
-          <Page ref={printRef}>{questionsData}</Page>
+          <Page ref={printRef} isDarkMode={isDarkMode}>
+            {questionsData}
+          </Page>
         </PrintWrapper>
       )}
 
@@ -395,6 +400,8 @@ const Print = () => {
         <button onClick={() => setZoomLevel(zoomLevel + 10)}>확대</button>
         <br />
         <button onClick={() => setZoomLevel(zoomLevel - 10)}>축소</button>
+        <br />
+        <button onClick={() => setDarkMode(!isDarkMode)}>다크모드</button>
       </Buttons>
     </>
   );

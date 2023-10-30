@@ -1,15 +1,17 @@
-import { createRef, useCallback, useEffect, useRef, useState } from "react";
+import { createRef, useCallback, useEffect, useRef, useState } from 'react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { toast } from 'react-toastify';
 import { setDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
-import { ref, getDownloadURL, uploadBytes, deleteObject } from "firebase/storage";
-import { fireStore, storage } from '../Firebase';
+import {
+  ref,
+  getDownloadURL,
+  uploadBytes,
+  deleteObject,
+} from 'firebase/storage';
 import { useDocumentOnce } from 'react-firebase-hooks/firestore';
 import { useUploadFile } from 'react-firebase-hooks/storage';
-import { Link, useNavigate, useParams } from "react-router-dom";
-import styled, { css } from "styled-components";
-import usePrompt from "../hooks/useBlockerPrompt";
-import LoadingSpinner from "../components/LoadingSpinner";
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import styled, { css } from 'styled-components';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { ContentEditable } from '../components/ContentEditable';
 
@@ -17,13 +19,16 @@ import { FiTrash, FiUnderline } from 'react-icons/fi';
 import { BiHighlight, BiImageAdd } from 'react-icons/bi';
 import { BsTypeBold } from 'react-icons/bs';
 
-import "../styles/animations.css";
+import '../styles/animations.css';
 import 'react-toastify/dist/ReactToastify.css';
-import { render } from "@testing-library/react";
+import { render } from '@testing-library/react';
+import LoadingSpinner from '../components/LoadingSpinner';
+import usePrompt from '../hooks/useBlockerPrompt';
+import { fireStore, storage } from '../Firebase';
 
 interface IQuestion {
   [key: string]: any;
-	id?: number;
+  id?: number;
   nodeRef?: any;
   subject: string;
   content: string;
@@ -44,13 +49,13 @@ const Container = styled.div`
   height: fit-content;
 `;
 
-const NavBar = styled.div<{sticky: boolean}>`
+const NavBar = styled.div<{ sticky: boolean }>`
   display: flex;
   align-items: center;
   width: 100%;
   height: 80px;
-  background: #2C2C2C;
-  opacity: ${props => props.sticky ? 0 : 1};
+  background: #2c2c2c;
+  opacity: ${(props) => (props.sticky ? 0 : 1)};
   top: 0;
   margin-top: 55px;
   margin-bottom: 55px;
@@ -60,27 +65,27 @@ const NavBar = styled.div<{sticky: boolean}>`
 const NavTitle = styled.div`
   font-weight: 900;
   font-size: 30px;
-  color: #FFFFFF;
-`
+  color: #ffffff;
+`;
 
 const NavBackLink = styled(Link)`
   font-weight: 600;
   font-size: 14px;
-  color: #FFFFFF;
+  color: #ffffff;
   text-decoration: none;
 
   &:hover {
-    color: #6170F1;
-  };
+    color: #6170f1;
+  }
 
   transition: color 0.1s ease;
-`
+`;
 
 const SaveButton = styled.div`
   width: 78px;
   height: 32px;
 
-  background: #4255FF;
+  background: #4255ff;
   border-radius: 5px;
 
   font-weight: 500;
@@ -88,7 +93,7 @@ const SaveButton = styled.div`
   text-decoration: none;
   line-height: 32px;
   text-align: center;
-  color: #FFFFFF;
+  color: #ffffff;
 
   cursor: pointer;
 
@@ -97,43 +102,45 @@ const SaveButton = styled.div`
 
   &:hover {
     background: #364aff;
-  };
+  }
 
   &:active {
     background: #1f35fc;
   }
 `;
 
-const StickyNavBarBox = styled.div<{sticky: boolean}>`
+const StickyNavBarBox = styled.div<{ sticky: boolean }>`
   display: flex;
   align-items: center;
   width: 99.4%;
   height: 80px;
-  background: #2C2C2C;
-  opacity: ${props => props.sticky ? 1 : 0};
+  background: #2c2c2c;
+  opacity: ${(props) => (props.sticky ? 1 : 0)};
   position: fixed;
   top: 38px;
   z-index: 1000;
   box-shadow: 0 0.25rem 1rem 0 rgb(0 0 0 / 16%);
 `;
 
-const StickyNavBar = styled.div<{sticky: boolean}>`
+const StickyNavBar = styled.div<{ sticky: boolean }>`
   display: flex;
   align-items: center;
   width: 89.3%;
   height: 80px;
   background: transparent;
-  opacity: ${props => props.sticky ? 1 : 0};
+  opacity: ${(props) => (props.sticky ? 1 : 0)};
   position: fixed;
   top: 38px;
   z-index: 1001;
 `;
 
-const Input = styled.input`
+const Input = styled.input<{ isDarkMode: boolean }>`
   width: calc(100% - 10px);
   height: 42px;
-  background: #D9D9D9;
-  font-family: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif !important;
+  font-family: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto,
+    'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR',
+    'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+    sans-serif !important;
   font-weight: 500;
   font-size: 15px;
   padding-left: 10px;
@@ -142,12 +149,13 @@ const Input = styled.input`
   outline: none;
   border-radius: 10px;
 
-  color: #1E1E1E;
+  background: ${(props) => (props.isDarkMode ? '#1e1e1e' : '#d9d9d9')};
+  color: ${(props) => (props.isDarkMode ? '#d9d9d9' : '#1e1e1e')};
 
   margin-bottom: 20px;
 `;
 
-const QuestionToolBar = styled.div`
+const QuestionToolBar = styled.div<{ isDarkMode: boolean }>`
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
@@ -159,39 +167,42 @@ const QuestionToolBar = styled.div`
 
   height: 47px;
 
-  background: #D9D9D9;
+  background: ${(props) => (props.isDarkMode ? '#1e1e1e' : '#d9d9d9')};
+  color: ${(props) => (props.isDarkMode ? '#d9d9d9' : '#1e1e1e')};
   border-radius: 10px 10px 0px 0px;
 `;
 
-const QuestionNumber = styled.div`
+const QuestionNumber = styled.div<{ isDarkMode: boolean }>`
   font-weight: 500;
   font-size: 18px;
 
-  color: #1E1E1E;
+  color: ${(props) => (props.isDarkMode ? '#d9d9d9' : '#1e1e1e')};
 `;
 
-const TrashButton = styled(FiTrash)<{disabled?: boolean}>`
+const TrashButton = styled(FiTrash)<{ disabled?: boolean }>`
   cursor: pointer;
-  transition: color .12s ease-in-out;
+  transition: color 0.12s ease-in-out;
 
   &:hover {
-    color: #6170F1;
-  };
+    color: #6170f1;
+  }
 
-  ${props => props.disabled && css`
-    &:hover {
-      color: black;
-    };
+  ${(props) =>
+    props.disabled &&
+    css`
+      &:hover {
+        color: black;
+      }
 
-    cursor: not-allowed;
-  `}
+      cursor: not-allowed;
+    `}
 `;
 
-const EditToolBar = styled.div`
+const EditToolBar = styled.div<{ isDarkMode: boolean }>`
   display: flex;
   align-items: center;
 
-  background: #1E1E1E;
+  background: ${(props) => (props.isDarkMode ? '#e4e4e4' : '#1e1e1e')};
   padding: 5px 5px 5px 13px;
   border-radius: 20px;
 
@@ -199,16 +210,16 @@ const EditToolBar = styled.div`
 
   visibility: hidden;
   opacity: 0;
-  transition: all .1s ease-in-out;
+  transition: all 0.1s ease-in-out;
 `;
 
-const EditToolButton = styled.button`
+const EditToolButton = styled.button<{ isDarkMode: boolean }>`
   display: flex;
   align-items: center;
 
   background: transparent;
   border: none;
-  color: white;
+  color: ${(props) => (props.isDarkMode ? '#1e1e1e' : 'white')};
   padding: 1px;
   cursor: pointer;
   margin-right: 10px;
@@ -218,28 +229,29 @@ const EditToolButton = styled.button`
   }
 
   &:hover svg {
-    color: #6170F1;
+    color: ${(props) => (props.isDarkMode ? '#4f3ee4' : '#6170f1')};
   }
 `;
 
-const QuestionWrapper = styled.div`
+const QuestionWrapper = styled.div<{ isDarkMode: boolean }>`
   width: 100%;
   min-height: 161px;
   height: fit-content;
   margin-bottom: 10px;
 
-  &:focus-within ${EditToolBar}{
+  &:focus-within ${EditToolBar} {
     visibility: visible;
     opacity: 1;
   }
 `;
 
-const QuestionContent = styled.div`
+const QuestionContent = styled.div<{ isDarkMode: boolean }>`
   min-height: 112px;
   height: fit-content;
   margin-top: 2px;
 
-  background: #D9D9D9;
+  background: ${(props) => (props.isDarkMode ? '#1e1e1e' : '#d9d9d9')};
+  color: ${(props) => (props.isDarkMode ? '#d9d9d9' : '#1e1e1e')};
   border-radius: 0px 0px 10px 10px;
 
   display: flex;
@@ -248,15 +260,15 @@ const QuestionContent = styled.div`
   padding-right: 15px;
 `;
 
-const QuestionInputWrapper = styled.div<{width: string}>`
-  width: ${props => props.width};
+const QuestionInputWrapper = styled.div<{ width: string }>`
+  width: ${(props) => props.width};
   height: fit-content;
   margin-left: 10px;
   margin-top: 38px;
   margin-bottom: 32px;
 `;
 
-const QuestionInput = styled(ContentEditable)`
+const QuestionInput = styled(ContentEditable)<{ isDarkMode: boolean }>`
   width: 100%;
   height: fit-content;
   background: transparent;
@@ -266,34 +278,40 @@ const QuestionInput = styled(ContentEditable)`
   border: 0;
   outline: none;
 
-  color: #1E1E1E;
+  color: ${(props) => (props.isDarkMode ? '#d9d9d9' : '#1e1e1e')};
+
+  span {
+    color: ${(props) => (props.isDarkMode ? '#1e1e1e' : '#d9d9d9')};
+  }
 
   white-space: pre-wrap;
 `;
 
-const QuestionInputBorder = styled.div`
-  box-shadow: 0 1.5px 0 0 #151515;
+const QuestionInputBorder = styled.div<{ isDarkMode: boolean }>`
+  box-shadow: 0 1.5px 0 0
+    ${(props) => (props.isDarkMode ? '#c0c0c0' : '#151515')};
   height: 3px;
 
   ${QuestionInput}:focus-within ~ & {
-    box-shadow: 0 3px 0 0 #6170F1;
-  };
+    box-shadow: 0 3px 0 0
+      ${(props) => (props.isDarkMode ? '#395aee' : '#6170f1')};
+  }
 
-  transition: all .12s cubic-bezier(.47,0,.745,.715);
+  transition: all 0.12s cubic-bezier(0.47, 0, 0.745, 0.715);
 `;
 
-const QuestionInputLabel = styled.span`
+const QuestionInputLabel = styled.span<{ isDarkMode: boolean }>`
   font-weight: 700;
   font-size: 14px;
 
-  color: #1E1E1E;
+  color: ${(props) => (props.isDarkMode ? '#d9d9d9' : '#1e1e1e')};
 `;
 
 const NewQuestionWrapper = styled.div`
   width: 100%;
   height: 112px;
 
-  background: #D9D9D9;
+  background: #d9d9d9;
   border-radius: 10px;
 
   display: flex;
@@ -308,7 +326,7 @@ const NewQuestionNumber = styled.div`
   font-weight: 700;
   font-size: 36px;
 
-  color: #7C7C7C;
+  color: #7c7c7c;
 
   margin-left: 40px;
 `;
@@ -334,14 +352,14 @@ const NewQuestionText = styled.div`
   transform: translateX(-50%);
 
   ${NewQuestionWrapper}:hover & {
-    color: #6170F1;
-    box-shadow: 0 3px 0 0 #6170F1;
-  };
+    color: #6170f1;
+    box-shadow: 0 3px 0 0 #6170f1;
+  }
 
-  transition: all .12s cubic-bezier(.47,0,.745,.715);
+  transition: all 0.12s cubic-bezier(0.47, 0, 0.745, 0.715);
 `;
 
-const UploadImageWrapper = styled.div<{ visible: boolean; }>`
+const UploadImageWrapper = styled.div<{ visible: boolean }>`
   position: absolute;
   box-sizing: border-box;
   left: 50%;
@@ -351,40 +369,54 @@ const UploadImageWrapper = styled.div<{ visible: boolean; }>`
   border-radius: 5px;
   padding: 15px 15px 15px 15px;
 
-  display: ${props => props.visible ? "block" : "none"};
+  display: ${(props) => (props.visible ? 'block' : 'none')};
 `;
 
 const Create = () => {
   const params = useParams();
   const navigate = useNavigate();
-  const projectId = useRef<string>(params.projectId ? params.projectId : (Math.random() + 1).toString(36).substring(7));
+  const projectId = useRef<string>(
+    params.projectId
+      ? params.projectId
+      : (Math.random() + 1).toString(36).substring(7)
+  );
   const [loaded, setLoaded] = useState<boolean>(false);
   const [created, setCreated] = useState<boolean>(false);
   const [naviBlocked, setNaviBlocked] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
+  const [isDarkMode, setDarkMode] = useState<boolean>(false);
 
-  usePrompt("저장 되지 않은 항목이 있어요. 정말 나갈까요?", naviBlocked);
+  usePrompt('저장 되지 않은 항목이 있어요. 정말 나갈까요?', naviBlocked);
 
   const [isNavSticky, setIsNavSticky] = useState(false);
 
   const subjectInputRef = useRef<HTMLInputElement>(null);
   const questionsCbRef = useRef<() => void | undefined>();
 
-  const createNewQuestion = (subject: string = "", meaning: string = "", content: string = "", attachImage: string = ""): IQuestion => {
+  const createNewQuestion = (
+    subject = '',
+    meaning = '',
+    content = '',
+    attachImage = ''
+  ): IQuestion => {
     const newQuestion: IQuestion = {
       id: Math.random(),
       nodeRef: createRef(),
 
-      subject: subject,
-      meaning: meaning,
-      content: content,
-      attachImage: attachImage
+      subject,
+      meaning,
+      content,
+      attachImage,
     };
     return newQuestion;
   };
 
   const [questions, setQuestions] = useState<IQuestion[]>([
-    createNewQuestion(), createNewQuestion(), createNewQuestion(), createNewQuestion(), createNewQuestion()
+    createNewQuestion(),
+    createNewQuestion(),
+    createNewQuestion(),
+    createNewQuestion(),
+    createNewQuestion(),
   ]);
 
   const addQuestion = () => {
@@ -392,10 +424,12 @@ const Create = () => {
     setQuestions([...questions, newQuestion]);
 
     questionsCbRef.current = () => {
-      const element = newQuestion.nodeRef.current.getElementsByClassName("subjectInput")[0] as HTMLElement;
+      const element = newQuestion.nodeRef.current.getElementsByClassName(
+        'subjectInput'
+      )[0] as HTMLElement;
       element.focus();
-      element.scrollIntoView({behavior: 'smooth'});
-    }
+      element.scrollIntoView({ behavior: 'smooth' });
+    };
   };
 
   useEffect(() => {
@@ -421,19 +455,19 @@ const Create = () => {
   const saveData = async () => {
     if (!saving) {
       setSaving(true);
-      const toastId = toast.loading("저장 중...", {
-        position: "bottom-left",
+      const toastId = toast.loading('저장 중...', {
+        position: 'bottom-left',
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
         draggable: true,
         progress: undefined,
-        theme: "dark"
+        theme: 'dark',
       });
 
-      if (subjectInputRef.current?.value == "") {
+      if (subjectInputRef.current?.value == '') {
         toast.update(toastId, {
-          render: "프로젝트의 제목이 입력되지 않았어요.",
+          render: '프로젝트의 제목이 입력되지 않았어요.',
           isLoading: false,
           autoClose: 2000,
         });
@@ -444,63 +478,89 @@ const Create = () => {
 
       for (let i = 0; i < questions.length; i++) {
         const _value = questions[i];
-        if (_value.subject == "") {
+        if (_value.subject == '') {
           toast.update(toastId, {
-            render: "제목이 입력되지 않은 문제가 있어요.",
+            render: '제목이 입력되지 않은 문제가 있어요.',
             isLoading: false,
             autoClose: 2000,
           });
-          const element = _value.nodeRef.current.getElementsByClassName("subjectInput")[0] as HTMLElement;
+          const element = _value.nodeRef.current.getElementsByClassName(
+            'subjectInput'
+          )[0] as HTMLElement;
           element.focus();
           setSaving(false);
-          return
+          return;
         }
 
-        const uploadImageElement = _value.nodeRef.current.getElementsByClassName("uploadImageInput")[0] as HTMLInputElement;
-        let attachmentURL = "";
-        if (uploadImageElement.files && (uploadImageElement.files.length > 0)) {
+        const uploadImageElement =
+          _value.nodeRef.current.getElementsByClassName(
+            'uploadImageInput'
+          )[0] as HTMLInputElement;
+        let attachmentURL = '';
+        if (uploadImageElement.files && uploadImageElement.files.length > 0) {
           const file = uploadImageElement.files[0];
 
           const metadata = {
-            contentType: file.type
+            contentType: file.type,
           };
 
-          const storageRef = ref(storage, "uploaedQuestionImages/" + Math.floor(Math.random() * 1000).toString() + file.name);
-          await uploadBytes(storageRef, file, metadata).then(async (snapshot) => {
-            console.log('Uploaded a blob or file!');
-            await getDownloadURL(snapshot.ref).then((downloadURL) => {
-              console.log('File available at', downloadURL);
-              attachmentURL = downloadURL;
+          const storageRef = ref(
+            storage,
+            `uploaedQuestionImages/${Math.floor(
+              Math.random() * 1000
+            ).toString()}${file.name}`
+          );
+          await uploadBytes(storageRef, file, metadata).then(
+            async (snapshot) => {
+              console.log('Uploaded a blob or file!');
+              await getDownloadURL(snapshot.ref)
+                .then((downloadURL) => {
+                  console.log('File available at', downloadURL);
+                  attachmentURL = downloadURL;
 
-              uploadImageElement.value = "";
-            }).catch((e) => {
-              console.log("upload file error " + e);
-            });
-          });
+                  uploadImageElement.value = '';
+                })
+                .catch((e) => {
+                  console.log(`upload file error ${e}`);
+                });
+            }
+          );
         }
 
-        if (attachmentURL != "") {
-          if (_value.attachImage != "") {
+        if (attachmentURL != '') {
+          if (_value.attachImage != '') {
             const storageRef = ref(storage, _value.attachImage);
-            await deleteObject(storageRef).then(() => {
-              console.log("Old image file deleted");
-            }).catch((e) => {
-              console.log("deleted file error " + e);
-            });
+            await deleteObject(storageRef)
+              .then(() => {
+                console.log('Old image file deleted');
+              })
+              .catch((e) => {
+                console.log(`deleted file error ${e}`);
+              });
           }
 
           _value.attachImage = attachmentURL;
-        } else {
-          if ((_value.nodeRef.current.getElementsByClassName("deleteImageInput")[0] as HTMLInputElement).value == "yes") {
-            (_value.nodeRef.current.getElementsByClassName("deleteImageInput")[0] as HTMLInputElement).value = "no";
-            const storageRef = ref(storage, _value.attachImage);
-            await deleteObject(storageRef).then(() => {
-              console.log("User request image file deleted");
-            }).catch((e) => {
-              console.log("user request deleted file error " + e);
+        } else if (
+          (
+            _value.nodeRef.current.getElementsByClassName(
+              'deleteImageInput'
+            )[0] as HTMLInputElement
+          ).value == 'yes'
+        ) {
+          (
+            _value.nodeRef.current.getElementsByClassName(
+              'deleteImageInput'
+            )[0] as HTMLInputElement
+          ).value = 'no';
+          const storageRef = ref(storage, _value.attachImage);
+          await deleteObject(storageRef)
+            .then(() => {
+              console.log('User request image file deleted');
+            })
+            .catch((e) => {
+              console.log(`user request deleted file error ${e}`);
             });
-            _value.attachImage = "";
-          };
+          _value.attachImage = '';
         }
       }
 
@@ -511,11 +571,11 @@ const Create = () => {
           subject: value.subject,
           content: value.content,
           meaning: value.meaning,
-          attachImage: value.attachImage
-        }
+          attachImage: value.attachImage,
+        };
       });
 
-      const docRef = doc(fireStore, "projects", projectId.current);
+      const docRef = doc(fireStore, 'projects', projectId.current);
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
@@ -523,10 +583,10 @@ const Create = () => {
         await updateDoc(docRef, {
           title: subjectInputRef.current?.value,
           editAt: Date.now(),
-          questions: _questionsfordb
+          questions: _questionsfordb,
         }).finally(() => {
           toast.update(toastId, {
-            render: "저장을 완료했어요.",
+            render: '저장을 완료했어요.',
             isLoading: false,
             autoClose: 2000,
           });
@@ -537,11 +597,11 @@ const Create = () => {
           title: subjectInputRef.current?.value,
           createdAt: Date.now(),
           editAt: Date.now(),
-          questions: _questionsfordb
+          questions: _questionsfordb,
         }).finally(() => {
           navigate(`/project/${projectId.current}`);
           toast.update(toastId, {
-            render: "프로젝트가 생성되었어요.",
+            render: '프로젝트가 생성되었어요.',
             isLoading: false,
             autoClose: 2000,
           });
@@ -551,7 +611,9 @@ const Create = () => {
     }
   };
 
-  const [projectDbValue, projectDbLoading, projectDbError] = useDocumentOnce(doc(fireStore, "projects", projectId.current));
+  const [projectDbValue, projectDbLoading, projectDbError] = useDocumentOnce(
+    doc(fireStore, 'projects', projectId.current)
+  );
   useEffect(() => {
     if (!projectDbLoading) {
       if (projectDbValue) {
@@ -560,7 +622,12 @@ const Create = () => {
           if (_questions.length > 0) {
             const _questionsfordb: IQuestion[] = [];
             _questions.map((value: any, i: number) => {
-              _questionsfordb[i] = createNewQuestion(value.subject, value.meaning, value.content, value.attachImage);
+              _questionsfordb[i] = createNewQuestion(
+                value.subject,
+                value.meaning,
+                value.content,
+                value.attachImage
+              );
             });
             setQuestions(Object.values(_questionsfordb));
             setCreated(true);
@@ -572,16 +639,25 @@ const Create = () => {
     }
   }, [projectDbLoading]);
 
-  useHotkeys('ctrl+s', () => {
-    saveData();
-  }, [questions], {enableOnContentEditable: true});
+  useHotkeys(
+    'ctrl+s',
+    () => {
+      saveData();
+    },
+    [questions],
+    { enableOnContentEditable: true }
+  );
 
-  useHotkeys('ctrl+h', () => {
-    setTextDesign("highlight");
-  }, {enableOnContentEditable: true});
+  useHotkeys(
+    'ctrl+h',
+    () => {
+      setTextDesign('highlight');
+    },
+    { enableOnContentEditable: true }
+  );
 
   const handleScroll = () => {
-    if (document.getElementById('app')?.scrollTop as number >= 50) {
+    if ((document.getElementById('app')?.scrollTop as number) >= 50) {
       !isNavSticky && setIsNavSticky(true);
     } else {
       setIsNavSticky(false);
@@ -594,32 +670,48 @@ const Create = () => {
     }, 100);
     return () => {
       clearInterval(timer);
-      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, []);
 
   const NavBarContent = () => {
     return (
       <>
-        {created
-          ? <NavBackLink to={`/project/${projectId.current}`}>{"< 프로젝트로 돌아가기"}</NavBackLink>
-          : <NavTitle>프로젝트 만들기</NavTitle>
-        }
-        <SaveButton onClick={saveData}>{saving ? "저장 중..." : (created ? "저장" : "만들기")}</SaveButton>
+        {created ? (
+          <NavBackLink to={`/project/${projectId.current}`}>
+            {'< 프로젝트로 돌아가기'}
+          </NavBackLink>
+        ) : (
+          <NavTitle>프로젝트 만들기</NavTitle>
+        )}
+        <SaveButton onClick={saveData}>
+          {saving ? '저장 중...' : created ? '저장' : '만들기'}
+        </SaveButton>
+        <SaveButton
+          onClick={() => setDarkMode(!isDarkMode)}
+          style={{
+            height: '31px',
+            lineHeight: '31px',
+            marginBottom: '0px',
+            marginLeft: '10px',
+          }}
+        >
+          다크 모드
+        </SaveButton>
       </>
-    )
+    );
   };
 
   const setTextDesign = (type: string, event?: any) => {
     if (event) {
       event.preventDefault();
     }
-    if (type == "highlight") {
-      const colour = document.queryCommandValue("backColor");
+    if (type == 'highlight') {
+      const colour = document.queryCommandValue('backColor');
       if (colour === 'rgb(247, 224, 72)') {
-          document.execCommand("hiliteColor", false, "transparent");
+        document.execCommand('hiliteColor', false, 'transparent');
       } else {
-          document.execCommand("hiliteColor", false, "#f7e048");
+        document.execCommand('hiliteColor', false, '#f7e048');
       }
     } else {
       document.execCommand(type);
@@ -630,82 +722,171 @@ const Create = () => {
 
   return (
     <CreateWrapper>
-      <LoadingSpinner visible={projectDbLoading && !loaded}/>
+      <LoadingSpinner visible={projectDbLoading && !loaded} />
 
       <StickyNavBarBox sticky={isNavSticky} />
-      <StickyNavBar sticky={isNavSticky}><NavBarContent/></StickyNavBar>
+      <StickyNavBar sticky={isNavSticky}>
+        <NavBarContent />
+      </StickyNavBar>
 
-      {(!projectDbLoading && loaded) &&
+      {!projectDbLoading && loaded && (
         <Container onClick={() => setUploadImageVisible([])}>
-          <NavBar sticky={isNavSticky}><NavBarContent/></NavBar>
-          <Input placeholder="제목을 입력하세요." type="text" spellCheck="false" ref={subjectInputRef} defaultValue={projectDbValue?.data()?.title} tabIndex={1} onInput={() => setNaviBlocked(true)}/>
+          <NavBar sticky={isNavSticky}>
+            <NavBarContent />
+          </NavBar>
+          <Input
+            placeholder="제목을 입력하세요."
+            type="text"
+            spellCheck="false"
+            ref={subjectInputRef}
+            defaultValue={projectDbValue?.data()?.title}
+            tabIndex={1}
+            onInput={() => setNaviBlocked(true)}
+            isDarkMode={isDarkMode}
+          />
           <TransitionGroup>
             {questions.map((value: any, i: number) => (
-              <CSSTransition key={value.id} nodeRef={value.nodeRef} timeout={200} classNames="questionAnimation">
+              <CSSTransition
+                key={value.id}
+                nodeRef={value.nodeRef}
+                timeout={200}
+                classNames="questionAnimation"
+              >
                 <QuestionWrapper ref={value.nodeRef}>
-                  <UploadImageWrapper visible={uploadImageVisible[i]} onClick={(e: any) => e.stopPropagation()}>
-                    <input className="uploadImageInput" type="file" accept=".png,.jpg,.gif,.bmp" style={{ width: "200px" }} onChange={() => {(value.nodeRef.current.getElementsByClassName("deleteImageInput")[0] as HTMLInputElement).value = "no"; setNaviBlocked(true);}}></input>
-                    <input type="hidden" className="deleteImageInput"></input>
-                    <button onClick={() => {(value.nodeRef.current.getElementsByClassName("deleteImageInput")[0] as HTMLInputElement).value = "yes"}}>삭제</button>
-                    <br></br>
-                    {value.attachImage != "" && <img src={value.attachImage} style={{maxWidth: "30%", maxHeight: "30%"}} />}
+                  <UploadImageWrapper
+                    visible={uploadImageVisible[i]}
+                    onClick={(e: any) => e.stopPropagation()}
+                  >
+                    <input
+                      className="uploadImageInput"
+                      type="file"
+                      accept=".png,.jpg,.gif,.bmp"
+                      style={{ width: '200px' }}
+                      onChange={() => {
+                        (
+                          value.nodeRef.current.getElementsByClassName(
+                            'deleteImageInput'
+                          )[0] as HTMLInputElement
+                        ).value = 'no';
+                        setNaviBlocked(true);
+                      }}
+                    />
+                    <input type="hidden" className="deleteImageInput" />
+                    <button
+                      onClick={() => {
+                        (
+                          value.nodeRef.current.getElementsByClassName(
+                            'deleteImageInput'
+                          )[0] as HTMLInputElement
+                        ).value = 'yes';
+                      }}
+                    >
+                      삭제
+                    </button>
+                    <br />
+                    {value.attachImage != '' && (
+                      <img
+                        src={value.attachImage}
+                        style={{ maxWidth: '30%', maxHeight: '30%' }}
+                      />
+                    )}
                   </UploadImageWrapper>
-                  <QuestionToolBar>
-                    <QuestionNumber>{i + 1}</QuestionNumber>
-                    <EditToolBar>
-                      <EditToolButton onMouseDown={(e: any) => setTextDesign("bold", e)} style={{marginRight: "5px"}}>
-                        <BsTypeBold size={"22px"}/>
+                  <QuestionToolBar isDarkMode={isDarkMode}>
+                    <QuestionNumber isDarkMode={isDarkMode}>
+                      {i + 1}
+                    </QuestionNumber>
+                    <EditToolBar isDarkMode={isDarkMode}>
+                      <EditToolButton
+                        onMouseDown={(e: any) => setTextDesign('bold', e)}
+                        style={{ marginRight: '5px' }}
+                        isDarkMode={isDarkMode}
+                      >
+                        <BsTypeBold size="22px" />
                       </EditToolButton>
 
-                      <EditToolButton onMouseDown={(e: any) => setTextDesign("highlight", e)}>
-                        <BiHighlight size={"22px"}/>
+                      <EditToolButton
+                        onMouseDown={(e: any) => setTextDesign('highlight', e)}
+                        isDarkMode={isDarkMode}
+                      >
+                        <BiHighlight size="22px" />
                       </EditToolButton>
 
-                      <EditToolButton onMouseDown={(e: any) => setTextDesign("underline", e)}>
-                        <FiUnderline size={"22px"}/>
+                      <EditToolButton
+                        onMouseDown={(e: any) => setTextDesign('underline', e)}
+                        isDarkMode={isDarkMode}
+                      >
+                        <FiUnderline size="22px" />
                       </EditToolButton>
 
-                      <EditToolButton onClick={(e: any) => {
-                        e.stopPropagation();
-                        const _uploadImageVisible = [...uploadImageVisible];
-                        _uploadImageVisible[i] = true;
-                        setUploadImageVisible(_uploadImageVisible);
-                      }}>
-                        <BiImageAdd size={"22px"} />
+                      <EditToolButton
+                        onClick={(e: any) => {
+                          e.stopPropagation();
+                          const _uploadImageVisible = [...uploadImageVisible];
+                          _uploadImageVisible[i] = true;
+                          setUploadImageVisible(_uploadImageVisible);
+                        }}
+                        isDarkMode={isDarkMode}
+                      >
+                        <BiImageAdd size="22px" />
                       </EditToolButton>
                     </EditToolBar>
-                    {(questions.length > 1) ? <TrashButton size={"18px"} onClick={() => {setNaviBlocked(true); deleteQuestion(value.id);}}/> : <TrashButton size={"18px"} disabled={true} />}
+                    {questions.length > 1 ? (
+                      <TrashButton
+                        size="18px"
+                        onClick={() => {
+                          setNaviBlocked(true);
+                          deleteQuestion(value.id);
+                        }}
+                      />
+                    ) : (
+                      <TrashButton size="18px" disabled />
+                    )}
                   </QuestionToolBar>
-                  <QuestionContent>
+                  <QuestionContent isDarkMode={isDarkMode}>
                     <QuestionInputWrapper width="10%">
                       <QuestionInput
                         html={value.subject}
                         className="subjectInput"
                         tabIndex={1}
-                        onChange={(e: any) => updateQuestionInputData("subject", i, e)}
+                        onChange={(e: any) =>
+                          updateQuestionInputData('subject', i, e)
+                        }
+                        isDarkMode={isDarkMode}
                       />
-                      <QuestionInputBorder/>
-                      <QuestionInputLabel>제목</QuestionInputLabel>
+                      <QuestionInputBorder isDarkMode={isDarkMode} />
+                      <QuestionInputLabel isDarkMode={isDarkMode}>
+                        제목
+                      </QuestionInputLabel>
                     </QuestionInputWrapper>
                     <QuestionInputWrapper width="25%">
                       <QuestionInput
                         html={value.meaning}
                         className="meaningInput"
                         tabIndex={1}
-                        onChange={(e: any) => updateQuestionInputData("meaning", i, e)}
+                        onChange={(e: any) =>
+                          updateQuestionInputData('meaning', i, e)
+                        }
+                        isDarkMode={isDarkMode}
                       />
-                      <QuestionInputBorder/>
-                      <QuestionInputLabel>뜻</QuestionInputLabel>
-                      </QuestionInputWrapper>
+                      <QuestionInputBorder isDarkMode={isDarkMode} />
+                      <QuestionInputLabel isDarkMode={isDarkMode}>
+                        뜻
+                      </QuestionInputLabel>
+                    </QuestionInputWrapper>
                     <QuestionInputWrapper width="65%">
                       <QuestionInput
                         html={value.content}
                         className="contentInput"
                         tabIndex={1}
-                        onChange={(e: any) => updateQuestionInputData("content", i, e)}
+                        onChange={(e: any) =>
+                          updateQuestionInputData('content', i, e)
+                        }
+                        isDarkMode={isDarkMode}
                       />
-                      <QuestionInputBorder/>
-                      <QuestionInputLabel>내용</QuestionInputLabel>
+                      <QuestionInputBorder isDarkMode={isDarkMode} />
+                      <QuestionInputLabel isDarkMode={isDarkMode}>
+                        내용
+                      </QuestionInputLabel>
                     </QuestionInputWrapper>
                   </QuestionContent>
                 </QuestionWrapper>
@@ -713,16 +894,25 @@ const Create = () => {
             ))}
           </TransitionGroup>
 
-          <NewQuestionWrapper onClick={addQuestion} onFocus={addQuestion} tabIndex={1}>
-            <NewQuestionNumber>{(questions.length) + 1}</NewQuestionNumber>
+          <NewQuestionWrapper
+            onClick={addQuestion}
+            onFocus={addQuestion}
+            tabIndex={1}
+          >
+            <NewQuestionNumber>{questions.length + 1}</NewQuestionNumber>
             <NewQuestionTextInner>
               <NewQuestionText>카드 추가</NewQuestionText>
             </NewQuestionTextInner>
           </NewQuestionWrapper>
 
-          <SaveButton onClick={saveData} style={{height: "40px", lineHeight: "40px", marginBottom: "30px"}}>{saving ? "저장 중..." : (created ? "저장" : "만들기")}</SaveButton>
+          <SaveButton
+            onClick={saveData}
+            style={{ height: '40px', lineHeight: '40px', marginBottom: '30px' }}
+          >
+            {saving ? '저장 중...' : created ? '저장' : '만들기'}
+          </SaveButton>
         </Container>
-      }
+      )}
     </CreateWrapper>
   );
 };
