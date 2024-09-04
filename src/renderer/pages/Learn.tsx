@@ -127,7 +127,7 @@ const Text = styled.div`
 
     span {
       border-radius: 3px;
-      color: black !important;
+      color: black;
     }
   }
 
