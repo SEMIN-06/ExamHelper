@@ -12,6 +12,7 @@ React 공부 및 학교 시험 공부를 할 때 암기 과목들을 보다 쉽�
 
 ### 개발 환경
 
+* Macbook Pro M1 Pro
 * Visual Studio Code
 
 ### 이 프로젝트에 사용한 것들
