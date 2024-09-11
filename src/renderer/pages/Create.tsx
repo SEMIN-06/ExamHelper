@@ -281,7 +281,7 @@ const QuestionInput = styled(ContentEditable)<{ isDarkMode: boolean }>`
   color: ${(props) => (props.isDarkMode ? '#d9d9d9' : '#1e1e1e')};
 
   span {
-    color: ${(props) => (props.isDarkMode ? '#1e1e1e' : '#d9d9d9')};
+    color: ${(props) => (props.isDarkMode ? '#1e1e1e' : '#1e1e1e')};
   }
 
   white-space: pre-wrap;
