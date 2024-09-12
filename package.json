@@ -16,7 +16,7 @@
     "type": "git",
     "url": "git+https://github.com/NiMES01/ExamHelper.git"
   },
-  "license": "MIT",
+  "license": "GPL-3.0-only",
   "author": {
     "name": "NiMES",
     "email": "activate@kakao.com"
