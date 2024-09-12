@@ -16,7 +16,7 @@ React 공부 및 학교 시험 공부를 할 때 암기 과목들을 보다 쉽�
 * Macbook Pro M1 Pro
 * Visual Studio Code
 
-### 시연 영상
+### 시연 영상 (클릭 시 유튜브로 이동합니다.)
 [![시연 영상](https://img.youtube.com/vi/mSJ4Ni_GFyE/0.jpg)](https://www.youtube.com/watch?v=mSJ4Ni_GFyE "시연 영상")
 
 ### 이 프로젝트에 사용한 것들
