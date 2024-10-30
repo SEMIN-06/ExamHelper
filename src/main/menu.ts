@@ -1,4 +1,4 @@
-import { Menu, shell, BrowserWindow } from 'electron';
+import { Menu, shell, BrowserWindow, app } from 'electron';
 
 export default class MenuBuilder {
   mainWindow: BrowserWindow;
@@ -38,22 +38,64 @@ export default class MenuBuilder {
     });
   }
 
-  buildDefaultTemplate() {
+  buildDefaultTemplate(): Electron.MenuItemConstructorOptions[] {
+    const isMac = process.platform === 'darwin';
+
     const templateDefault = [
+      ...(isMac
+        ? [
+            {
+              label: app.getName(),
+              submenu: [
+                { role: 'about' as const },
+                { type: 'separator' as const },
+                { role: 'services' as const },
+                { type: 'separator' as const },
+                { role: 'hide' as const },
+                { role: 'hideOthers' as const },
+                { role: 'unhide' as const },
+                { type: 'separator' as const },
+                { role: 'quit' as const },
+              ],
+            } as Electron.MenuItemConstructorOptions,
+          ]
+        : []),
       {
         label: '&File',
         submenu: [
           {
             label: '&Open',
-            accelerator: 'Ctrl+O',
+            accelerator: isMac ? 'Cmd+O' : 'Ctrl+O',
           },
           {
             label: '&Close',
-            accelerator: 'Ctrl+W',
+            accelerator: isMac ? 'Cmd+W' : 'Ctrl+W',
             click: () => {
               this.mainWindow.close();
             },
           },
+        ],
+      },
+      {
+        label: 'Edit',
+        submenu: [
+          { role: 'undo' as const },
+          { role: 'redo' as const },
+          { type: 'separator' as const },
+          { role: 'cut' as const },
+          { role: 'copy' as const },
+          { role: 'paste' as const },
+          ...(isMac
+            ? [
+                { role: 'pasteAndMatchStyle' as const },
+                { role: 'delete' as const },
+                { role: 'selectAll' as const },
+              ]
+            : [
+                { role: 'delete' as const },
+                { type: 'separator' as const },
+                { role: 'selectAll' as const },
+              ]),
         ],
       },
       {

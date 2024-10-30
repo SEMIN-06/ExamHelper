@@ -639,9 +639,13 @@ const Create = () => {
     }
   }, [projectDbLoading]);
 
+  const isMac = /Mac|iPhone|iPod|iPad/.test(navigator.userAgent);
+  const modifierKey = isMac ? 'meta' : 'ctrl';
+
   useHotkeys(
-    'ctrl+s',
-    () => {
+    `${modifierKey}+s`,
+    (e) => {
+      e.preventDefault();
       saveData();
     },
     [questions],
@@ -649,8 +653,9 @@ const Create = () => {
   );
 
   useHotkeys(
-    'ctrl+h',
-    () => {
+    `${modifierKey}+h`,
+    (e) => {
+      e.preventDefault();
       setTextDesign('highlight');
     },
     { enableOnContentEditable: true }

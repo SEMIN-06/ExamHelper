@@ -74,7 +74,7 @@ const createWindow = async () => {
     webPreferences: {
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
-        : path.join(__dirname, '../../.erb/dll/preload.js')
+        : path.join(__dirname, '../../.erb/dll/preload.js'),
     },
   });
 
@@ -106,21 +106,23 @@ const createWindow = async () => {
 
   ipcMain.on('windowControl', async (event, arg) => {
     switch (arg[0]) {
-      case "mini":
+      case 'mini':
         mainWindow?.minimize();
         break;
-      case "size":
-        if(mainWindow?.isMaximized()){
+      case 'size':
+        if (mainWindow?.isMaximized()) {
           mainWindow?.restore();
         } else {
           mainWindow?.maximize();
         }
         break;
-      case "exit":
+      case 'exit':
         mainWindow?.close();
         break;
-      case "menu":
+      case 'menu':
         menu.popup();
+        break;
+      default:
         break;
     }
   });
