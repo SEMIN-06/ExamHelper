@@ -7,7 +7,7 @@ export const PrintWrapper = styled.div<{
   display: flex;
   justify-content: center;
   padding: 2rem;
-  background-color: ${(props) => (props.isDarkMode ? '#191919' : '#191919')};
+  background-color: #2c2c2c;
   min-height: 100vh;
   zoom: ${(props) => props.zoomLevel}%;
 `;
@@ -15,8 +15,8 @@ export const PrintWrapper = styled.div<{
 export const Page = styled.div<{ isDarkMode: boolean }>`
   width: 21cm;
   min-height: 29.7cm;
-  background-color: ${(props) => (props.isDarkMode ? '#2D2D2D' : '#ffffff')};
-  color: ${(props) => (props.isDarkMode ? '#E0E0E0' : '#2D2D2D')};
+  background-color: ${(props) => (props.isDarkMode ? '#1e1e1e' : '#ffffff')};
+  color: ${(props) => (props.isDarkMode ? '#d9d9d9' : '#2D2D2D')};
   padding: 2rem 3rem;
   border-radius: 8px;
   box-shadow: ${(props) =>
@@ -108,8 +108,8 @@ export const Text = styled.div<{ isDarkMode: boolean }>`
 
 export const Controls = styled.div<{ isDarkMode: boolean }>`
   position: fixed;
-  top: 2rem;
-  right: 2rem;
+  top: 10%;
+  right: 5%;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
