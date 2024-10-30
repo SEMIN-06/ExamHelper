@@ -28,7 +28,12 @@ const Learn = () => {
     pageStyle: `
       @page {
         size: A4;
-        margin: 2cm;
+        margin: 0.5cm;
+      }
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
       }
     `,
   });

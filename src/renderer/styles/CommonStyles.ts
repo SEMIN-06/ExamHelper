@@ -17,7 +17,7 @@ export const Page = styled.div<{ isDarkMode: boolean }>`
   min-height: 29.7cm;
   background-color: ${(props) => (props.isDarkMode ? '#1e1e1e' : '#ffffff')};
   color: ${(props) => (props.isDarkMode ? '#d9d9d9' : '#2D2D2D')};
-  padding: 2rem 3rem;
+  padding: 2rem 2rem;
   border-radius: 8px;
   box-shadow: ${(props) =>
     props.isDarkMode
@@ -83,27 +83,6 @@ export const Text = styled.div<{ isDarkMode: boolean }>`
     padding: 1px 3px;
     border-radius: 5px;
   }
-
-  @media print {
-    .subject {
-      color: inherit;
-    }
-    .meaning {
-      color: inherit;
-    }
-    .content {
-      border-left-color: inherit;
-    }
-    .line-number {
-      background: inherit;
-      color: inherit;
-    }
-    .highlight {
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-      color-adjust: exact !important;
-    }
-  }
 `;
 
 export const Controls = styled.div<{ isDarkMode: boolean }>`
@@ -120,10 +99,6 @@ export const Controls = styled.div<{ isDarkMode: boolean }>`
     props.isDarkMode
       ? '0 0 0 1px rgba(255,255,255,0.1)'
       : 'rgba(15, 15, 15, 0.1) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 2px 4px'};
-
-  @media print {
-    display: none;
-  }
 
   button {
     padding: 8px 12px;
@@ -156,10 +131,6 @@ export const Controls = styled.div<{ isDarkMode: boolean }>`
 
 export const PageTitle = styled.h1<{ isDarkMode: boolean }>`
   color: ${(props) => (props.isDarkMode ? '#E0E0E0' : '#2D2D2D')};
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   font-size: 1.5rem;
-
-  @media print {
-    color: #37352f;
-  }
 `;

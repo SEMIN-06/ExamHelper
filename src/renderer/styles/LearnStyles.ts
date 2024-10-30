@@ -50,11 +50,4 @@ export const EditableText = styled(Text)`
       visibility: visible;
     }
   }
-
-  @media print {
-    .editable {
-      background: rgba(255, 212, 0, 0.14);
-      min-width: 30px;
-    }
-  }
 `;
