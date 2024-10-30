@@ -1,140 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { doc, DocumentData, getDoc, deleteDoc } from 'firebase/firestore';
-import styled from 'styled-components';
+import { doc, DocumentData, getDoc } from 'firebase/firestore';
 import { useReactToPrint } from 'react-to-print';
 import { fireStore } from '../Firebase';
 import LoadingSpinner from '../components/LoadingSpinner';
-
-const NumberCircles = [
-  '①',
-  '②',
-  '③',
-  '④',
-  '⑤',
-  '⑥',
-  '⑦',
-  '⑧',
-  '⑨',
-  '⑩',
-  '⑪',
-  '⑫',
-  '⑬',
-  '⑭',
-  '⑮',
-  '⑯',
-  '⑰',
-  '⑱',
-  '⑲',
-  '⑳',
-  '㉑',
-  '㉒',
-  '㉓',
-  '㉔',
-  '㉕',
-  '㉖',
-  '㉗',
-  '㉘',
-  '㉙',
-  '㉚',
-  '㉛',
-  '㉜',
-  '㉝',
-  '㉞',
-  '㉟',
-  '㊱',
-  '㊲',
-  '㊳',
-  '㊴',
-  '㊵',
-  '㊶',
-  '㊷',
-  '㊸',
-  '㊹',
-  '㊺',
-  '㊻',
-  '㊼',
-  '㊽',
-  '㊾',
-  '㊿',
-];
-
-const PrintWrapper = styled.div<{ zoomLevel: number }>`
-  display: flex;
-  vertical-align: middle;
-  align-items: center;
-  justify-content: center;
-
-  zoom: ${(props) => props.zoomLevel}%;
-`;
-
-const Page = styled.div<{ isDarkMode: boolean }>`
-  width: 21cm;
-  min-height: 29.7cm;
-  background-color: ${(props) => (props.isDarkMode ? '#0E0E10' : 'white')};
-  color: ${(props) => (props.isDarkMode ? 'white' : 'black')};
-  margin-bottom: 0.5cm;
-  overflow: hidden;
-
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-
-  white-space: pre-wrap;
-
-  @page {
-    size: A4;
-    margin: 0.3cm;
-  }
-
-  @media print {
-    @page {
-      margin: 0.3cm;
-    }
-    margin: 0.3cm;
-    border: initial;
-    border-radius: initial;
-    width: initial;
-    min-height: initial;
-    box-shadow: initial;
-    background: initial;
-    page-break-after: always;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-`;
-
-const Text = styled.div`
-  font-family: 'SeoulNamsanC' !important;
-  font-weight: 700;
-  font-size: 16px;
-  transform: rotate(-0.03deg);
-
-  .subject {
-    font-family: 'SeoulNamsanC';
-    font-weight: 900 !important;
-
-    span {
-      font-weight: 900 !important;
-    }
-  }
-
-  p,
-  span {
-    font-family: 'SeoulNamsanC';
-    font-weight: 700;
-
-    span {
-      border-radius: 3px;
-      color: black !important;
-    }
-  }
-`;
-
-const Buttons = styled.div`
-  position: absolute;
-  top: 10%;
-`;
+import {
+  PrintWrapper,
+  Page,
+  Controls,
+  PageTitle,
+  Text,
+} from '../styles/CommonStyles';
 
 const Print = () => {
   const params = useParams();
@@ -148,26 +25,42 @@ const Print = () => {
 
   const handlePrint = useReactToPrint({
     content: () => printRef.current,
+    pageStyle: `
+      @page {
+        size: A4;
+        margin: 0.5cm;
+      }
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+    `,
   });
 
-  const goBackProblem = (errorCode: string) => {
-    navigate(-1);
-    toast(`프로젝트 로딩 중 문제가 발생했어요. (${errorCode})`, {
-      position: 'bottom-left',
-      autoClose: 2000,
-      hideProgressBar: true,
-      closeOnClick: true,
-      pauseOnHover: false,
-      draggable: true,
-      progress: undefined,
-      theme: 'dark',
+  const parseContent = (content: string) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(content, 'text/html');
+    const highlights = Array.from(
+      doc.querySelectorAll('[style*="background-color: rgb(247, 224, 72)"]')
+    );
+
+    let result = content;
+    highlights.forEach((highlight) => {
+      const text = highlight.textContent || '';
+      result = result.replace(
+        highlight.outerHTML,
+        `<span class="highlight">${text}</span>`
+      );
     });
+
+    return result;
   };
 
   useEffect(() => {
     const fn = async () => {
-      if (params.projectId != undefined) {
-        projectId.current = params.projectId as string;
+      if (params.projectId) {
+        projectId.current = params.projectId;
         const docSnap = await getDoc(
           doc(fireStore, 'projects', projectId.current)
         );
@@ -175,10 +68,12 @@ const Print = () => {
           setProjectDBData(docSnap.data());
           setLoaded(true);
         } else {
-          goBackProblem('PROJECT-NULL');
+          navigate(-1);
+          toast('프로젝트를 찾을 수 없습니다.', {
+            position: 'bottom-center',
+            theme: isDarkMode ? 'dark' : 'light',
+          });
         }
-      } else {
-        goBackProblem('PROJECTID-UNDEFINED');
       }
     };
     fn();
@@ -190,41 +85,55 @@ const Print = () => {
       value.content = value.content
         .replace(/<div>/gi, '<br>')
         .replace(/<\/div>/gi, '');
-      value.content = value.content.replaceAll('<br>-&gt;', '\n    -&gt;'); // -&gt; = >
-      const contents = value.content.split('<br>');
 
-      let filterdContent = '';
-      contents.length > 0 &&
-        contents[0] != '' &&
-        contents.map((value: any, index: number) => {
-          filterdContent += `-> ${NumberCircles[index]} ${value}<br>`;
-        });
+      const parsedSubject = parseContent(value.subject);
+      const parsedMeaning = parseContent(value.meaning);
 
+      let parsedContent = value.content;
+      if (value.content) {
+        const lines = parsedContent.split('<br>');
+        let j = 1;
+        parsedContent = lines
+          .map((line) => {
+            if (!line.trim()) return '';
+
+            const isIndented = line.trim().startsWith('-&gt;');
+            const indentedLine = `<div class="line"><span style="padding-left: 1rem">${line}</span></div>`;
+
+            return isIndented
+              ? indentedLine
+              : `<div class="line"><span class="line-number">${j++}</span>${line}</div>`;
+          })
+          .join('');
+      }
+
+      parsedContent = parseContent(parsedContent);
       return (
-        <Text key={value.id}>
-          {value.meaning == '' && value.content == '' ? (
+        <Text key={value.id} isDarkMode={isDarkMode}>
+          <div
+            className="subject"
+            dangerouslySetInnerHTML={{
+              __html: `${index + 1}. ${parsedSubject}`,
+            }}
+          />
+          {(value.meaning || value.content) && (
             <>
-              <span className="subject">{index + 1}.</span>{' '}
-              <span dangerouslySetInnerHTML={{ __html: value.subject }} />
-            </>
-          ) : (
-            <>
-              <span
-                className="subject"
-                dangerouslySetInnerHTML={{
-                  __html: `${index + 1}. ${value.subject}`,
-                }}
-              />{' '}
-              - <span dangerouslySetInnerHTML={{ __html: value.meaning }} />
-              <br />
-              <p dangerouslySetInnerHTML={{ __html: filterdContent }} />
+              {value.meaning && (
+                <div
+                  className="meaning"
+                  dangerouslySetInnerHTML={{ __html: parsedMeaning }}
+                />
+              )}
+              {value.content && (
+                <div
+                  className="content"
+                  dangerouslySetInnerHTML={{ __html: parsedContent }}
+                />
+              )}
             </>
           )}
           {value.attachImage && (
-            <img
-              src={value.attachImage}
-              style={{ maxWidth: '30%', maxHeight: '30%' }}
-            />
+            <img src={value.attachImage} alt={`Question ${index + 1} image`} />
           )}
         </Text>
       );
@@ -233,26 +142,32 @@ const Print = () => {
   return (
     <>
       <LoadingSpinner visible={!loaded} />
-
       {loaded && projectDBData && (
-        <PrintWrapper zoomLevel={zoomLevel}>
+        <PrintWrapper zoomLevel={zoomLevel} isDarkMode={isDarkMode}>
           <Page ref={printRef} isDarkMode={isDarkMode}>
+            <PageTitle isDarkMode={isDarkMode}>{projectDBData.title}</PageTitle>
             {questionsData}
           </Page>
         </PrintWrapper>
       )}
 
-      <Buttons>
-        <button onClick={() => navigate(-1)}>이전</button>
-        <br />
-        <button onClick={handlePrint}>인쇄</button>
-        <br />
-        <button onClick={() => setZoomLevel(zoomLevel + 10)}>확대</button>
-        <br />
-        <button onClick={() => setZoomLevel(zoomLevel - 10)}>축소</button>
-        <br />
-        <button onClick={() => setDarkMode(!isDarkMode)}>다크모드</button>
-      </Buttons>
+      <Controls isDarkMode={isDarkMode}>
+        <button onClick={() => navigate(-1)}>
+          <span>← 이전으로</span>
+        </button>
+        <button onClick={handlePrint} className="primary">
+          <span>🖨 인쇄하기</span>
+        </button>
+        <button onClick={() => setZoomLevel(zoomLevel + 10)}>
+          <span>🔍 확대</span>
+        </button>
+        <button onClick={() => setZoomLevel(zoomLevel - 10)}>
+          <span>🔍 축소</span>
+        </button>
+        <button onClick={() => setDarkMode(!isDarkMode)}>
+          <span>{isDarkMode ? '☀️ 라이트' : '🌙 다크'}</span>
+        </button>
+      </Controls>
     </>
   );
 };
