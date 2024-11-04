@@ -27,6 +27,20 @@ export const EditableText = styled(Text)`
           : 'rgba(128, 128, 128, 0.5)'};
     }
 
+    &[data-ctrl]:before {
+      position: absolute;
+      background: rgb(0, 0, 0);
+      border-radius: 5px;
+      content: '';
+      visibility: hidden;
+      color: white;
+    }
+
+    &[data-ctrl]:focus:before {
+      content: attr(data-ctrl);
+      visibility: visible;
+    }
+
     &[data-hover]:before {
       content: attr(data-hover);
       position: absolute;
@@ -46,6 +60,7 @@ export const EditableText = styled(Text)`
     }
 
     &[data-hover]:hover:before {
+      content: attr(data-hover);
       opacity: 1;
       visibility: visible;
     }

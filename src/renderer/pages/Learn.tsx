@@ -5,6 +5,7 @@ import { doc, DocumentData, getDoc } from 'firebase/firestore';
 import { useReactToPrint } from 'react-to-print';
 import DOMPurify from 'dompurify';
 import { useRecoilState } from 'recoil';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { fireStore } from '../Firebase';
 import LoadingSpinner from '../components/LoadingSpinner';
 import {
@@ -67,7 +68,7 @@ const Learn = () => {
       const width = getTextWidth(text, '16px -apple-system');
       result = result.replace(
         highlight.outerHTML,
-        `<span class="editable" contenteditable spellCheck="false" data-text="${text}" style="width: ${width}px"></span>`
+        `<span class="editable" contenteditable spellCheck="false" data-text="${text}" style="width: ${width}px" onkeydown="if (event.keyCode == 112) { const ogText = this.getAttribute('data-text'); this.setAttribute('data-ctrl', ogText) }" onmousedown="this.setAttribute('data-ctrl', '')" onkeyup="this.setAttribute('data-ctrl', '')"></span>`
       );
     });
 
