@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { doc, DocumentData, getDoc } from 'firebase/firestore';
 import { useReactToPrint } from 'react-to-print';
+import { useRecoilState } from 'recoil';
 import { fireStore } from '../Firebase';
 import LoadingSpinner from '../components/LoadingSpinner';
 import {
@@ -12,6 +13,7 @@ import {
   PageTitle,
   Text,
 } from '../styles/CommonStyles';
+import { darkModeState } from '../recoil/DarkModeRecoil';
 
 const Print = () => {
   const params = useParams();
@@ -21,7 +23,8 @@ const Print = () => {
   const [projectDBData, setProjectDBData] = useState<DocumentData>();
   const printRef = useRef<HTMLDivElement>(null);
   const [zoomLevel, setZoomLevel] = useState<number>(100);
-  const [isDarkMode, setDarkMode] = useState<boolean>(false);
+  const [isControlsCollapsed, setIsControlsCollapsed] = useState(false);
+  const [isDarkMode, setDarkMode] = useRecoilState(darkModeState);
 
   const handlePrint = useReactToPrint({
     content: () => printRef.current,
@@ -152,19 +155,19 @@ const Print = () => {
       )}
 
       <Controls isDarkMode={isDarkMode}>
-        <button onClick={() => navigate(-1)}>
+        <button type="button" onClick={() => navigate(-1)}>
           <span>← 이전으로</span>
         </button>
-        <button onClick={handlePrint} className="primary">
+        <button type="button" onClick={handlePrint} className="primary">
           <span>🖨 인쇄하기</span>
         </button>
-        <button onClick={() => setZoomLevel(zoomLevel + 10)}>
+        <button type="button" onClick={() => setZoomLevel(zoomLevel + 10)}>
           <span>🔍 확대</span>
         </button>
-        <button onClick={() => setZoomLevel(zoomLevel - 10)}>
+        <button type="button" onClick={() => setZoomLevel(zoomLevel - 10)}>
           <span>🔍 축소</span>
         </button>
-        <button onClick={() => setDarkMode(!isDarkMode)}>
+        <button type="button" onClick={() => setDarkMode(!isDarkMode)}>
           <span>{isDarkMode ? '☀️ 라이트' : '🌙 다크'}</span>
         </button>
       </Controls>

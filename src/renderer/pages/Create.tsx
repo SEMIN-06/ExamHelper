@@ -22,9 +22,11 @@ import { BsTypeBold } from 'react-icons/bs';
 import '../styles/animations.css';
 import 'react-toastify/dist/ReactToastify.css';
 import { render } from '@testing-library/react';
-import LoadingSpinner from '../components/LoadingSpinner';
-import usePrompt from '../hooks/useBlockerPrompt';
+import { useRecoilState } from 'recoil';
 import { fireStore, storage } from '../Firebase';
+import usePrompt from '../hooks/useBlockerPrompt';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { darkModeState } from '../recoil/DarkModeRecoil';
 
 interface IQuestion {
   [key: string]: any;
@@ -384,7 +386,7 @@ const Create = () => {
   const [created, setCreated] = useState<boolean>(false);
   const [naviBlocked, setNaviBlocked] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
-  const [isDarkMode, setDarkMode] = useState<boolean>(false);
+  const [isDarkMode, setDarkMode] = useRecoilState(darkModeState);
 
   usePrompt('저장 되지 않은 항목이 있어요. 정말 나갈까요?', naviBlocked);
 

@@ -101,8 +101,8 @@ export default class MenuBuilder {
       {
         label: '&View',
         submenu:
-          process.env.NODE_ENV === 'development' ||
-          process.env.DEBUG_PROD === 'true'
+          process.env.NODE_ENV !== 'development' &&
+          process.env.DEBUG_PROD !== 'true'
             ? [
                 {
                   label: '&Reload',

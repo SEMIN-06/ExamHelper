@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { doc, DocumentData, getDoc } from 'firebase/firestore';
 import { useReactToPrint } from 'react-to-print';
 import DOMPurify from 'dompurify';
+import { useRecoilState } from 'recoil';
 import { fireStore } from '../Firebase';
 import LoadingSpinner from '../components/LoadingSpinner';
 import {
@@ -14,6 +15,7 @@ import {
 } from '../styles/CommonStyles';
 import { EditableText } from '../styles/LearnStyles';
 import { IQuestion } from '../types';
+import { darkModeState } from '../recoil/DarkModeRecoil';
 
 const Learn = () => {
   const params = useParams();
@@ -23,7 +25,7 @@ const Learn = () => {
   const [projectDBData, setProjectDBData] = useState<DocumentData>();
   const printRef = useRef<HTMLDivElement>(null);
   const [zoomLevel, setZoomLevel] = useState<number>(100);
-  const [isDarkMode, setDarkMode] = useState<boolean>(false);
+  const [isDarkMode, setDarkMode] = useRecoilState(darkModeState);
 
   const handlePrint = useReactToPrint({
     content: () => printRef.current,

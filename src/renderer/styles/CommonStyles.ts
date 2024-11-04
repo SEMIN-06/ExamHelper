@@ -6,10 +6,10 @@ export const PrintWrapper = styled.div<{
 }>`
   display: flex;
   justify-content: center;
-  padding: 2rem;
   background-color: #2c2c2c;
   min-height: 100vh;
   zoom: ${(props) => props.zoomLevel}%;
+  padding: 3rem;
 `;
 
 export const Page = styled.div<{ isDarkMode: boolean }>`
@@ -17,7 +17,7 @@ export const Page = styled.div<{ isDarkMode: boolean }>`
   min-height: 29.7cm;
   background-color: ${(props) => (props.isDarkMode ? '#1e1e1e' : '#ffffff')};
   color: ${(props) => (props.isDarkMode ? '#d9d9d9' : '#2D2D2D')};
-  padding: 2rem 2rem;
+  padding: 1.5rem;
   border-radius: 8px;
   box-shadow: ${(props) =>
     props.isDarkMode
@@ -36,12 +36,12 @@ export const Text = styled.div<{ isDarkMode: boolean }>`
     sans-serif;
   font-size: 16px;
   line-height: 1.7;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 
   .subject {
     font-weight: 600;
     font-size: 1.1em;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
     color: ${(props) => (props.isDarkMode ? '#E0E0E0' : '#2D2D2D')};
   }
 
@@ -51,7 +51,7 @@ export const Text = styled.div<{ isDarkMode: boolean }>`
   }
 
   .content {
-    margin-top: 0.5rem;
+    margin-top: 0.25rem;
     padding-left: 1rem;
     border-left: 2px solid
       ${(props) => (props.isDarkMode ? '#404040' : '#D1D1D1')};
@@ -85,10 +85,12 @@ export const Text = styled.div<{ isDarkMode: boolean }>`
   }
 `;
 
-export const Controls = styled.div<{ isDarkMode: boolean }>`
+export const Controls = styled.div<{
+  isDarkMode: boolean;
+}>`
   position: fixed;
   top: 10%;
-  right: 5%;
+  left: 0;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -99,6 +101,12 @@ export const Controls = styled.div<{ isDarkMode: boolean }>`
     props.isDarkMode
       ? '0 0 0 1px rgba(255,255,255,0.1)'
       : 'rgba(15, 15, 15, 0.1) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 2px 4px'};
+  transition: all 0.3s ease;
+  transform: translateX(-85%);
+
+  &:hover {
+    transform: translateX(0);
+  }
 
   button {
     padding: 8px 12px;
@@ -114,6 +122,7 @@ export const Controls = styled.div<{ isDarkMode: boolean }>`
     display: flex;
     align-items: center;
     gap: 8px;
+    white-space: nowrap;
 
     &:hover {
       background: ${(props) => (props.isDarkMode ? '#505050' : '#E8E8E8')};
