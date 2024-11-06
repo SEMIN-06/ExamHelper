@@ -68,7 +68,16 @@ const Learn = () => {
       const width = getTextWidth(text, '16px -apple-system');
       result = result.replace(
         highlight.outerHTML,
-        `<span class="editable" contenteditable spellCheck="false" data-text="${text}" style="width: ${width}px" onkeydown="if (event.keyCode == 112) { const ogText = this.getAttribute('data-text'); this.setAttribute('data-ctrl', ogText) }" onmousedown="this.setAttribute('data-ctrl', '')" onkeyup="this.setAttribute('data-ctrl', '')"></span>`
+        `<span
+  class="editable"
+  contenteditable
+  spellCheck="false"
+  data-text="${text}"
+  style="width: ${width}px"
+  onkeydown="if (event.keyCode == 112) { event.preventDefault(); const ogText = this.getAttribute('data-text'); this.setAttribute('data-ctrl', ogText) }"
+  onmousedown="this.setAttribute('data-ctrl', '')"
+  onkeyup="this.setAttribute('data-ctrl', '')"
+></span>`
       );
     });
 
@@ -163,10 +172,9 @@ const Learn = () => {
 
               return isIndented
                 ? indentedLine
-                : `<div class="line"><span class="line-number">${j}</span>${line}</div>`;
+                : `<div class="line"><span class="line-number">${j++}</span>${line}</div>`;
             })
             .join('');
-          j += 1;
         }
 
         parsedContent = parseContent(parsedContent);
@@ -176,7 +184,7 @@ const Learn = () => {
               className="subject"
               // eslint-disable-next-line react/no-danger
               dangerouslySetInnerHTML={{
-                __html: DOMPurify.sanitize(`${index + 1}. ${parsedSubject}`),
+                __html: `${index + 1}. ${parsedSubject}`,
               }}
             />
             {(value.meaning || value.content) && (

@@ -15,10 +15,6 @@ export const EditableText = styled(Text)`
     transition: all 0.2s;
     position: relative;
 
-    &:empty {
-      min-width: ${(props) => props.width || '20px'};
-    }
-
     &:focus {
       outline: none;
       background: ${(props) =>
